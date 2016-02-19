@@ -4,15 +4,14 @@
 Plugin Name: Gravity Forms Zoho CRM Add-On
 Plugin URI: http://www.gravityforms.com
 Description: Integrates Gravity Forms with Zoho CRM, allowing form submissions to be automatically sent to your Zoho CRM account.
-Version: 1.0
+Version: 1.2
 Author: rocketgenius
 Author URI: http://www.rocketgenius.com
 Text Domain: gravityformszohocrm
 Domain Path: /languages
 
 ------------------------------------------------------------------------
-Copyright 2009 rocketgenius
-last updated: October 20, 2010
+Copyright 2009-2016 Rocketgenius, Inc.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -29,7 +28,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 */
 
-define( 'GF_ZOHOCRM_VERSION', '1.0' );
+define( 'GF_ZOHOCRM_VERSION', '1.2' );
 
 add_action( 'gform_loaded', array( 'GF_ZohoCRM_Bootstrap', 'load' ), 5 );
 
