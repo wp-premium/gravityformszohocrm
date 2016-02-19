@@ -1,0 +1,28 @@
+-----------------------------------------------------------
+1.2
+    - Added support for configuring a task description.
+	- Added feed duplication support.
+	- Added support for delaying feed processing until payment by PayPal Standard is successfully completed.
+	- Added some additional logging.
+    - Updated the task due date setting to support merge tags. The merge tag value must be numeric for the due date to be set.
+    - Updated to display an error for the password field on the settings page if Zoho returns a WEB_LOGIN_REQUIRED error.
+    - Fixed an issue with the request failed message if a WP_Error occurs.
+    - Fixed an issue with the text domain for some of the translatable strings.
+    - Fixed an issue with how multiple choices in multiselect and checkbox type field values are separated when being sent to Zoho.
+	- Fixed module field choices return "Array" as an option.
+	- Fixed fatal error that occurs during 1.1.5 upgrade routine.
+	- Fixed contacts and leads not being created when Zoho CRM account language is not set to English.
+	- Fixed module field loading to support foreign languages.
+
+-----------------------------------------------------------
+1.1
+	- Added authentication option for third party services (Google Apps, Facebook, Yahoo).
+	- Added options to allow for duplicate contacts and feeds.
+	- Added option to manually clear custom fields cache.
+	- Changed custom fields cache from 24 hours to 12 hours.
+	- Fixed an issue where only some of the uploaded files were attached.
+	- Updated available field types for mapping to the contact/lead email.
+
+-----------------------------------------------------------
+1.0
+	- It's all new!
