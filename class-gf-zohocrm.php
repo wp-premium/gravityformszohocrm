@@ -233,11 +233,15 @@ class GFZohoCRM extends GFFeedAddOn {
 	 * @return string $html
 	 */
 	public function settings_auth_token_button( $field, $echo = true ) {
+		/***
+		 * Allows Zoho API URL to be changed. In addition to crm.zoho.com, Zoho has an european solution that points to crm.zoho.eu
+		 */
+		$accounts_api_url = apply_filters( 'gform_zoho_accounts_api_url', 'https://accounts.zoho.com' );
 		
 		$html = sprintf(
 			'<a href="%1$s" class="button" onclick="%2$s">%3$s</a>',
-			'https://accounts.zoho.com/apiauthtoken/create?SCOPE=ZohoCRM/crmapi',
-			"window.open( 'https://accounts.zoho.com/apiauthtoken/create?SCOPE=ZohoCRM/crmapi', '_blank', 'toolbar=no,scrollbars=yes,resizable=yes,width=590,height=700' );return false;",
+			"{$accounts_api_url}/apiauthtoken/create?SCOPE=ZohoCRM/crmapi",
+			"window.open( '" . $accounts_api_url . "/apiauthtoken/create?SCOPE=ZohoCRM/crmapi', '_blank', 'toolbar=no,scrollbars=yes,resizable=yes,width=590,height=700' );return false;",
 			esc_html__( 'Click here to generate an authentication token.', 'gravityformszohocrm' )
 		);
 		
@@ -1002,10 +1006,6 @@ class GFZohoCRM extends GFFeedAddOn {
 			
 			if ( $field_map_type === 'standard' ) {
 				
-				if ( $standard_test ) {
-					$field['required'] = true;
-				}
-				
 				if ( ! $standard_test && ! $required_test ) {
 					unset( $field_map[$key] );
 				}
@@ -1233,14 +1233,12 @@ class GFZohoCRM extends GFFeedAddOn {
 		$contact_xml .= '<row no="1">' . "\r\n";
 		
 		foreach ( $contact as $field_key => $field_value ) {
-			
-			if ( is_array( $field_value ) )
-				continue;
-			
-			if ( $field_key === 'Description' )
-				$field_value = '<![CDATA[ ' . $field_value . ' ]]>';
 
-			$contact_xml .= '<FL val="' . $field_key . '">' . $field_value . '</FL>' . "\r\n";
+			if ( is_array( $field_value ) ) {
+				continue;
+			}
+
+			$contact_xml .= $this->get_field_xml( $field_key, $field_value );
 			
 		}
 		
@@ -1248,6 +1246,7 @@ class GFZohoCRM extends GFFeedAddOn {
 		$contact_xml .= '</Contacts>' . "\r\n";
 		
 		$this->log_debug( __METHOD__ . '(): Creating contact: ' . print_r( $contact, true ) );
+		$this->log_debug( __METHOD__ . '(): Creating contact XML: ' . print_r( $contact_xml, true ) );
 
 		try {
 		
@@ -1310,7 +1309,8 @@ class GFZohoCRM extends GFFeedAddOn {
 			'options'       => array(
 				'duplicateCheck' => rgars( $feed, 'meta/leadUpdate' ) == '1' ? '2' : '1',
 				'isApproval'     => rgars( $feed, 'meta/leadApprovalMode' ) == '1' ? 'true' : 'false',
-				'wfTrigger'      => rgars( $feed, 'meta/leadWorkflowMode' ) == '1' ? 'true' : 'false'
+				'wfTrigger'      => rgars( $feed, 'meta/leadWorkflowMode' ) == '1' ? 'true' : 'false',
+				'version'        => 4
 			)
 		);
 		
@@ -1350,14 +1350,12 @@ class GFZohoCRM extends GFFeedAddOn {
 		$lead_xml .= '<row no="1">' . "\r\n";
 		
 		foreach ( $lead as $field_key => $field_value ) {
-			
-			if ( is_array( $field_value ) )
+
+			if ( is_array( $field_value ) ) {
 				continue;
-			
-			if ( $field_key === 'Description' )
-				$field_value = '<![CDATA[ ' . $field_value . ' ]]>';
+			}
 				
-			$lead_xml .= '<FL val="' . $field_key . '">' . $field_value . '</FL>' . "\r\n";
+			$lead_xml .= $this->get_field_xml( $field_key, $field_value );
 			
 		}
 		
@@ -1374,18 +1372,14 @@ class GFZohoCRM extends GFFeedAddOn {
 		
 			/* Get lead ID of new lead record. */
 			$lead_id = 0;
-			foreach ( $lead_record->result->recorddetail as $detail ) {
-				
+
+			foreach ( $lead_record->result->row->success->details as $detail ) {
 				foreach ( $detail->children() as $field ) {
-					
 					if ( $field['val'] == 'Id' ) {
-						
 						$lead_id = (string) $field;
-						
+						break;
 					}
-					
 				}
-				
 			}
 		
 			/* Save lead ID to entry meta. */
@@ -1460,11 +1454,7 @@ class GFZohoCRM extends GFFeedAddOn {
 		
 		foreach ( $task as $field_key => $field_value ) {
 
-			if ( $field_key === 'Subject' ) {
-				$field_value = '<![CDATA[ ' . $field_value . ' ]]>';
-			}
-
-			$task_xml .= '<FL val="' . $field_key . '">' . $field_value . '</FL>' . "\r\n";
+			$task_xml .= $this->get_field_xml( $field_key, $field_value );
 			
 		}
 		
@@ -1472,7 +1462,8 @@ class GFZohoCRM extends GFFeedAddOn {
 		$task_xml .= '</Tasks>' . "\r\n";
 		
 		$this->log_debug( __METHOD__ . '(): Creating task: ' . print_r( $task, true ) );
-		
+		$this->log_debug( __METHOD__ . '(): Creating task XML: ' . print_r( $task_xml, true ) );
+
 		try {
 		
 			/* Insert task record. */
@@ -1853,6 +1844,24 @@ class GFZohoCRM extends GFFeedAddOn {
 		}
 
 		return parent::maybe_override_field_value( $field_value, $form, $entry, $field_id );
+	}
+	
+	/**
+	 * Get the XML string for the current field.
+	 *
+	 * @param string $field_key The ID of the field being processed.
+	 * @param string $field_value The field value.
+	 *
+	 * @return string
+	 */
+	public function get_field_xml( $field_key, $field_value ) {
+		$known_cdata_keys = array( 'Subject', 'Description' );
+
+		if ( in_array( $field_key, $known_cdata_keys ) || ! ctype_alnum( $field_value ) ) {
+			$field_value = '<![CDATA[ ' . $field_value . ' ]]>';
+		}
+
+		return '<FL val="' . $field_key . '">' . $field_value . '</FL>' . "\r\n";
 	}
 
 }

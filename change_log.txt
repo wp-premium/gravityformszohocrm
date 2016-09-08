@@ -1,4 +1,12 @@
 -----------------------------------------------------------
+1.3
+	- Added hook to allow API URL to be changed.
+    - Updated not to force standard fields to be required. The required state of the field on the feed will match the required state of the field in the Zoho account.
+	- Fixed issue where checking for duplicate leads did not correctly update duplicate leads.
+    - Fixed an issue where Zoho was unable to parse the XML data if the value contained special characters.
+    - Fixed an issue with the request failed message if a WP_Error occurs.
+
+-----------------------------------------------------------
 1.2
     - Added support for configuring a task description.
 	- Added feed duplication support.

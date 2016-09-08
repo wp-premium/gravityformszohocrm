@@ -5,7 +5,12 @@
 		protected $api_url = 'https://crm.zoho.com/crm/private/';
 		
 		public function __construct( $auth_token = null ) {
-			
+
+			/***
+			 * Allows Zoho API URL to be changed. In addition to crm.zoho.com, Zoho has an european solution that points to crm.zoho.eu
+			 */
+			$this->api_url = apply_filters( 'gform_zoho_api_url', $this->api_url );
+
 			$this->auth_token = $auth_token;
 			
 		}
@@ -118,7 +123,12 @@
 			);
 			
 			/* Execute request. */
-			$response = wp_remote_request( 'https://accounts.zoho.com/apiauthtoken/nb/create', array(
+			/***
+			 * Allows Zoho API URL to be changed. In addition to crm.zoho.com, Zoho has an european solution that points to crm.zoho.eu
+			 */
+			$accounts_api_url = apply_filters( 'gform_zoho_accounts_api_url', 'https://accounts.zoho.com' );
+
+			$response = wp_remote_request( "{$accounts_api_url}/apiauthtoken/nb/create", array(
 				'body'   => $parameters,
 				'method' => 'POST'
 			) );
@@ -126,7 +136,7 @@
 			/* If WordPress error, exit. */
 			if ( is_wp_error( $response ) ) {
 				
-				die( 'Request failed. ' . $response->get_error_messages() );
+				die( 'Request failed. ' . $response->get_error_message() );
 				
 			}
 			
