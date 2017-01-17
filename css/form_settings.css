@@ -1,25 +1,14 @@
 #gaddon-setting-row-contactStandardFields > td,
-#gaddon-setting-row-leadStandardFields > td { 
+#gaddon-setting-row-leadStandardFields > td {
 	padding-bottom: 0;
 }
 
 #gaddon-setting-row-contactCustomFields > td,
-#gaddon-setting-row-leadCustomFields > td,
-#gaddon-setting-row-contactCustomFields .repeater th,
-#gaddon-setting-row-leadCustomFields .repeater th { 
+#gaddon-setting-row-leadCustomFields > td {
 	padding-top: 0;
 }
 
-#gaddon-setting-row-contactCustomFields .repeater th,
-#gaddon-setting-row-leadCustomFields .repeater th {
-	width: 210px;
-}
-
-#gaddon-setting-row-contactStandardFields td select,
-#gaddon-setting-row-leadStandardFields td select,
-#gaddon-setting-row-contactCustomFields .repeater td select,
-#gaddon-setting-row-leadCustomFields .repeater td select {
-	margin-right: 6px;
-	max-width: none;
-	width: 200px;
+#gaddon-setting-row-contactStandardFields td:first-child,
+#gaddon-setting-row-leadStandardFields td:first-child {
+	width: 220px;
 }
