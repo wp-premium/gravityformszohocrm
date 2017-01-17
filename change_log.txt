@@ -1,4 +1,10 @@
 -----------------------------------------------------------
+1.4
+	- Updated contact, lead and task creation error reporting.
+	- Fixed module fields not importing in certain scenarios.
+	- Fixed strings for translations.
+
+-----------------------------------------------------------
 1.3
 	- Added hook to allow API URL to be changed.
     - Updated not to force standard fields to be required. The required state of the field on the feed will match the required state of the field in the Zoho account.
