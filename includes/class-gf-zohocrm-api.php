@@ -49,16 +49,17 @@ class GF_ZohoCRM_API {
 	 * @since  1.0
 	 * @access public
 	 *
-	 * @param string $module     Request module. Defaults to Leads.
-	 * @param string $action     Request action.
-	 * @param array  $options    Request options.
-	 * @param string $method     HTTP method. Defaults to GET.
-	 * @param string $return_key Array key from response to return. Defaults to null (return full response).
-	 * @param bool   $is_xml     If request is an XML. Defaults to false.
+	 * @param string $module        Request module. Defaults to Leads.
+	 * @param string $action        Request action.
+	 * @param array  $options       Request options.
+	 * @param string $method        HTTP method. Defaults to GET.
+	 * @param string $return_key    Array key from response to return. Defaults to null (return full response).
+	 * @param bool   $is_xml        If request is an XML. Defaults to false.
+	 * @param int    $response_code Expected HTTP response code.
 	 *
 	 * @return array|string
 	 */
-	public function make_request( $module = 'Leads', $action = null, $options = array(), $method = 'GET', $return_key = null, $is_xml = false ) {
+	public function make_request( $module = 'Leads', $action = null, $options = array(), $method = 'GET', $return_key = null, $is_xml = false, $response_code = 200 ) {
 
 		// Preapre request options string.
 		$request_options  = 'authtoken=' . $this->auth_token . '&scope=crmapi';
@@ -91,6 +92,12 @@ class GF_ZohoCRM_API {
 		// If API request returns a WordPress error, throw an exception.
 		if ( is_wp_error( $response ) ) {
 			throw new Exception( $response->get_error_message() );
+		}
+
+		// If an incorrect response code was returned, throw an exception.
+		$retrieved_response_code = wp_remote_retrieve_response_code( $response );
+		if ( $retrieved_response_code !== $response_code ) {
+			throw new Exception( "Expected response code: {$response_code}. Returned response code: {$retrieved_response_code}." );
 		}
 
 		// If this is an XML request, convert response to an XML object.

@@ -1,13 +1,13 @@
-# Copyright 2009-2017 Rocketgenius, Inc.
+# Copyright 2009-2018 Rocketgenius, Inc.
 msgid ""
 msgstr ""
-"Project-Id-Version: Gravity Forms Zoho CRM Add-On 1.4\n"
+"Project-Id-Version: Gravity Forms Zoho CRM Add-On 1.5\n"
 "Report-Msgid-Bugs-To: http://www.gravtiyhelp.com\n"
-"POT-Creation-Date: 2017-01-05 19:26:52+00:00\n"
+"POT-Creation-Date: 2018-04-12 16:03:51+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: 2017-MO-DA HO:MI+ZONE\n"
+"PO-Revision-Date: 2018-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Rocketgenius <customerservice@rocketgenius.com>\n"
 "Language-Team: Rocketgenius <customerservice@rocketgenius.com>\n"
 "X-Generator: Gravity Forms Build Server\n"
@@ -24,15 +24,15 @@ msgstr ""
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Textdomain-Support: yes\n"
 
-#: class-gf-zohocrm.php:212
+#: class-gf-zohocrm.php:217
 msgid "Create record in Zoho CRM only when payment is received."
 msgstr ""
 
-#: class-gf-zohocrm.php:256 class-gf-zohocrm.php:258
+#: class-gf-zohocrm.php:261 class-gf-zohocrm.php:263
 msgid "Clear Custom Fields Cache"
 msgstr ""
 
-#: class-gf-zohocrm.php:257
+#: class-gf-zohocrm.php:262
 msgid ""
 "Due to Zoho CRM's daily API usage limits, Gravity Forms stores Zoho CRM "
 "custom fields data for twelve hours. If you make a change to your custom "
@@ -40,265 +40,271 @@ msgid ""
 "caching. To manually clear the custom fields cache, click the button below."
 msgstr ""
 
-#: class-gf-zohocrm.php:301
+#: class-gf-zohocrm.php:306
 msgid "Custom fields cache has been cleared."
 msgstr ""
 
-#: class-gf-zohocrm.php:318
+#: class-gf-zohocrm.php:323
 msgid ""
 "Zoho CRM is a contact management tool that gives you a 360-degree view of "
 "your complete sales cycle and pipeline. Use Gravity Forms to collect "
 "customer information and automatically add it to your Zoho CRM account. If "
-"you don't have a Zoho CRM account, you can %1$s sign up for one here.%2$s"
+"you don't have a Zoho CRM account, you can %1$ssign up for one here.%2$s"
 msgstr ""
 
-#: class-gf-zohocrm.php:330
+#: class-gf-zohocrm.php:335
 msgid "Authenticate With"
 msgstr ""
 
-#: class-gf-zohocrm.php:336
+#: class-gf-zohocrm.php:341
 msgid "Email Address and Password"
 msgstr ""
 
-#: class-gf-zohocrm.php:340
+#: class-gf-zohocrm.php:345
 msgid "Third Party Service (Google Apps, Facebook, Yahoo)"
 msgstr ""
 
-#: class-gf-zohocrm.php:347
+#: class-gf-zohocrm.php:352
 msgid "Email Address"
 msgstr ""
 
-#: class-gf-zohocrm.php:355
+#: class-gf-zohocrm.php:360
 msgid "Password"
 msgstr ""
 
-#: class-gf-zohocrm.php:376
+#: class-gf-zohocrm.php:381
 msgid "Authentication Token"
 msgstr ""
 
-#: class-gf-zohocrm.php:385
+#: class-gf-zohocrm.php:390
 msgid "Zoho CRM settings have been updated."
 msgstr ""
 
-#: class-gf-zohocrm.php:414
+#: class-gf-zohocrm.php:419
 msgid "Click here to generate an authentication token."
 msgstr ""
 
-#: class-gf-zohocrm.php:514 class-gf-zohocrm.php:535
+#: class-gf-zohocrm.php:519 class-gf-zohocrm.php:540
 msgid "User does not exist."
 msgstr ""
 
-#: class-gf-zohocrm.php:515 class-gf-zohocrm.php:525
+#: class-gf-zohocrm.php:520 class-gf-zohocrm.php:530
 msgid "Invalid password."
 msgstr ""
 
-#: class-gf-zohocrm.php:545
+#: class-gf-zohocrm.php:550
 msgid ""
 "Invalid password. If two factor authentication is enabled for your account "
 "you'll need to use an application specific password."
 msgstr ""
 
-#: class-gf-zohocrm.php:581
-msgid "Feed Name"
-msgstr ""
-
-#: class-gf-zohocrm.php:585 class-gf-zohocrm.php:1102
-msgid "Name"
-msgstr ""
-
-#: class-gf-zohocrm.php:585
-msgid "Enter a feed name to uniquely identify this setup."
-msgstr ""
-
-#: class-gf-zohocrm.php:589 class-gf-zohocrm.php:593 class-gf-zohocrm.php:1103
-msgid "Action"
-msgstr ""
-
-#: class-gf-zohocrm.php:593
-msgid "Choose what will happen when this feed is processed."
+#: class-gf-zohocrm.php:560
+msgid ""
+"Maximum number of allowed auth tokens exceeded. You can remove old tokens "
+"via the Active Authtokens area of your Zoho account."
 msgstr ""
 
 #: class-gf-zohocrm.php:596
+msgid "Feed Name"
+msgstr ""
+
+#: class-gf-zohocrm.php:600 class-gf-zohocrm.php:1117
+msgid "Name"
+msgstr ""
+
+#: class-gf-zohocrm.php:600
+msgid "Enter a feed name to uniquely identify this setup."
+msgstr ""
+
+#: class-gf-zohocrm.php:604 class-gf-zohocrm.php:608 class-gf-zohocrm.php:1118
+msgid "Action"
+msgstr ""
+
+#: class-gf-zohocrm.php:608
+msgid "Choose what will happen when this feed is processed."
+msgstr ""
+
+#: class-gf-zohocrm.php:611
 msgid "Create an Action"
 msgstr ""
 
-#: class-gf-zohocrm.php:600 class-gf-zohocrm.php:1122
+#: class-gf-zohocrm.php:615 class-gf-zohocrm.php:1137
 msgid "Create a New Contact"
 msgstr ""
 
-#: class-gf-zohocrm.php:604 class-gf-zohocrm.php:1127
+#: class-gf-zohocrm.php:619 class-gf-zohocrm.php:1142
 msgid "Create a New Lead"
 msgstr ""
 
-#: class-gf-zohocrm.php:614
+#: class-gf-zohocrm.php:629
 msgid "Feed Conditional Logic"
 msgstr ""
 
-#: class-gf-zohocrm.php:620 class-gf-zohocrm.php:623
+#: class-gf-zohocrm.php:635 class-gf-zohocrm.php:638
 msgid "Conditional Logic"
 msgstr ""
 
-#: class-gf-zohocrm.php:621
+#: class-gf-zohocrm.php:636
 msgid "Enable"
 msgstr ""
 
-#: class-gf-zohocrm.php:622
+#: class-gf-zohocrm.php:637
 msgid "Export to Zoho CRM if"
 msgstr ""
 
-#: class-gf-zohocrm.php:623
+#: class-gf-zohocrm.php:638
 msgid ""
 "When conditional logic is enabled, form submissions will only be exported "
 "to Zoho CRM when the condition is met. When disabled, all form submissions "
 "will be posted."
 msgstr ""
 
-#: class-gf-zohocrm.php:655
+#: class-gf-zohocrm.php:670
 msgid "Contact Details"
 msgstr ""
 
-#: class-gf-zohocrm.php:660 class-gf-zohocrm.php:663 class-gf-zohocrm.php:780
-#: class-gf-zohocrm.php:783
+#: class-gf-zohocrm.php:675 class-gf-zohocrm.php:678 class-gf-zohocrm.php:795
+#: class-gf-zohocrm.php:798
 msgid "Map Fields"
 msgstr ""
 
-#: class-gf-zohocrm.php:663 class-gf-zohocrm.php:783
+#: class-gf-zohocrm.php:678 class-gf-zohocrm.php:798
 msgid "Select which Gravity Form fields pair with their respective Zoho CRM fields."
 msgstr ""
 
-#: class-gf-zohocrm.php:673
+#: class-gf-zohocrm.php:688
 msgid "Contact Owner"
 msgstr ""
 
-#: class-gf-zohocrm.php:681
+#: class-gf-zohocrm.php:696
 msgid "Contact Description"
 msgstr ""
 
-#: class-gf-zohocrm.php:685 class-gf-zohocrm.php:805
+#: class-gf-zohocrm.php:700 class-gf-zohocrm.php:820
 msgid "Options"
 msgstr ""
 
-#: class-gf-zohocrm.php:690 class-gf-zohocrm.php:810
+#: class-gf-zohocrm.php:705 class-gf-zohocrm.php:825
 msgid "Approval Mode"
 msgstr ""
 
-#: class-gf-zohocrm.php:694 class-gf-zohocrm.php:814
+#: class-gf-zohocrm.php:709 class-gf-zohocrm.php:829
 msgid "Workflow Mode"
 msgstr ""
 
-#: class-gf-zohocrm.php:698 class-gf-zohocrm.php:818
+#: class-gf-zohocrm.php:713 class-gf-zohocrm.php:833
 msgid "Email Opt Out"
 msgstr ""
 
-#: class-gf-zohocrm.php:702
+#: class-gf-zohocrm.php:717
 msgid "Allow duplicate contacts"
 msgstr ""
 
-#: class-gf-zohocrm.php:703
+#: class-gf-zohocrm.php:718
 msgid ""
 "If duplicate contacts are allowed, you will not be able to update contacts "
 "if they already exist."
 msgstr ""
 
-#: class-gf-zohocrm.php:707
+#: class-gf-zohocrm.php:722
 msgid "Update Contact if contact already exists for email address"
 msgstr ""
 
-#: class-gf-zohocrm.php:723 class-gf-zohocrm.php:862
+#: class-gf-zohocrm.php:738 class-gf-zohocrm.php:877
 msgid "Lead Source"
 msgstr ""
 
-#: class-gf-zohocrm.php:743 class-gf-zohocrm.php:745 class-gf-zohocrm.php:901
-#: class-gf-zohocrm.php:903
+#: class-gf-zohocrm.php:758 class-gf-zohocrm.php:760 class-gf-zohocrm.php:916
+#: class-gf-zohocrm.php:918
 msgid "Attachments"
 msgstr ""
 
-#: class-gf-zohocrm.php:745 class-gf-zohocrm.php:903
+#: class-gf-zohocrm.php:760 class-gf-zohocrm.php:918
 msgid ""
 "Zoho CRM has a maximum file size of 20MB. Any file larger than this will "
 "not be uploaded. Additionally, files will not be uploaded if you have "
 "reached the storage allocation for your Zoho CRM account."
 msgstr ""
 
-#: class-gf-zohocrm.php:775
+#: class-gf-zohocrm.php:790
 msgid "Lead Details"
 msgstr ""
 
-#: class-gf-zohocrm.php:793
+#: class-gf-zohocrm.php:808
 msgid "Lead Owner"
 msgstr ""
 
-#: class-gf-zohocrm.php:801
+#: class-gf-zohocrm.php:816
 msgid "Lead Description"
 msgstr ""
 
-#: class-gf-zohocrm.php:822
+#: class-gf-zohocrm.php:837
 msgid "Allow duplicate leads"
 msgstr ""
 
-#: class-gf-zohocrm.php:823
+#: class-gf-zohocrm.php:838
 msgid ""
 "If duplicate leads are allowed, you will not be able to update leads if "
 "they already exist."
 msgstr ""
 
-#: class-gf-zohocrm.php:827
+#: class-gf-zohocrm.php:842
 msgid "Update Lead if lead already exists for email address"
 msgstr ""
 
-#: class-gf-zohocrm.php:843
+#: class-gf-zohocrm.php:858
 msgid "Lead Rating"
 msgstr ""
 
-#: class-gf-zohocrm.php:881
+#: class-gf-zohocrm.php:896
 msgid "Lead Status"
 msgstr ""
 
-#: class-gf-zohocrm.php:934
+#: class-gf-zohocrm.php:949
 msgid "Task Details"
 msgstr ""
 
-#: class-gf-zohocrm.php:939
+#: class-gf-zohocrm.php:954
 msgid "Create Task"
 msgstr ""
 
-#: class-gf-zohocrm.php:946
+#: class-gf-zohocrm.php:961
 msgid "Create Task for %s"
 msgstr ""
 
-#: class-gf-zohocrm.php:956
+#: class-gf-zohocrm.php:971
 msgid "Task Subject"
 msgstr ""
 
-#: class-gf-zohocrm.php:964
+#: class-gf-zohocrm.php:979
 msgid "Days Until Due"
 msgstr ""
 
-#: class-gf-zohocrm.php:970
+#: class-gf-zohocrm.php:985
 msgid "Task Owner"
 msgstr ""
 
-#: class-gf-zohocrm.php:979
+#: class-gf-zohocrm.php:994
 msgid "Task Description"
 msgstr ""
 
-#: class-gf-zohocrm.php:994
+#: class-gf-zohocrm.php:1009
 msgid "Task Status"
 msgstr ""
 
-#: class-gf-zohocrm.php:1130
+#: class-gf-zohocrm.php:1145
 msgid "No Action"
 msgstr ""
 
-#: class-gf-zohocrm.php:1150
+#: class-gf-zohocrm.php:1165
 msgid "This field must be numeric or a merge tag."
 msgstr ""
 
-#: class-gf-zohocrm.php:1302
+#: class-gf-zohocrm.php:1312
 msgid "-None-"
 msgstr ""
 
-#: class-gf-zohocrm.php:1430
+#: class-gf-zohocrm.php:1440
 msgid "Feed was not processed because API was not initialized."
 msgstr ""
 
@@ -307,7 +313,7 @@ msgid "Gravity Forms Zoho CRM Add-On"
 msgstr ""
 
 #. Plugin URI of the plugin/theme
-msgid "http://www.gravityforms.com"
+msgid "https://www.gravityforms.com"
 msgstr ""
 
 #. Description of the plugin/theme
@@ -321,5 +327,5 @@ msgid "rocketgenius"
 msgstr ""
 
 #. Author URI of the plugin/theme
-msgid "http://www.rocketgenius.com"
+msgid "https://www.rocketgenius.com"
 msgstr ""
