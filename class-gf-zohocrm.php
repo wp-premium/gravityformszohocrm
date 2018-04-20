@@ -1,5 +1,10 @@
 <?php
 
+// don't load directly
+if ( ! defined( 'ABSPATH' ) ) {
+	die();
+}
+
 GFForms::include_feed_addon_framework();
 
 /**
@@ -254,7 +259,7 @@ class GFZohoCRM extends GFFeedAddOn {
 
 		$html  = '<div class="hr-divider"></div>';
 		$html .= '<h3><span><i class="fa fa-list"></i> ' . esc_html__( 'Clear Custom Fields Cache', 'gravityformszohocrm' ) . '</span></h3>';
-		$html .= '<p>' . esc_html__( 'Due to Zoho CRM\'s daily API usage limits, Gravity Forms stores Zoho CRM custom fields data for twelve hours. If you make a change to your custom fields, you might not see it reflected immediately due to this data caching. To manually clear the custom fields cache, click the button below.', 'gravityformzohocrm' ) . '</p>';
+		$html .= '<p>' . esc_html__( 'Due to Zoho CRM\'s daily API usage limits, Gravity Forms stores Zoho CRM custom fields data for twelve hours. If you make a change to your custom fields, you might not see it reflected immediately due to this data caching. To manually clear the custom fields cache, click the button below.', 'gravityformszohocrm' ) . '</p>';
 		$html .= '<p><a href="' . add_query_arg( 'clear_field_cache', 'true' ) . '" class="button button-primary">' . esc_html__( 'Clear Custom Fields Cache', 'gravityformszohocrm' ) . '</a></p>';
 
 		echo $html;
@@ -315,7 +320,7 @@ class GFZohoCRM extends GFFeedAddOn {
 		// Prepare plugin description.
 		$description  = '<p>';
 		$description .= sprintf(
-			esc_html__( 'Zoho CRM is a contact management tool that gives you a 360-degree view of your complete sales cycle and pipeline. Use Gravity Forms to collect customer information and automatically add it to your Zoho CRM account. If you don\'t have a Zoho CRM account, you can %1$s sign up for one here.%2$s', 'gravityformszohocrm' ),
+			esc_html__( 'Zoho CRM is a contact management tool that gives you a 360-degree view of your complete sales cycle and pipeline. Use Gravity Forms to collect customer information and automatically add it to your Zoho CRM account. If you don\'t have a Zoho CRM account, you can %1$ssign up for one here.%2$s', 'gravityformszohocrm' ),
 			'<a href="http://www.zoho.com/crm/" target="_blank">', '</a>'
 		);
 		$description .= '</p>';
@@ -543,6 +548,16 @@ class GFZohoCRM extends GFFeedAddOn {
 
 					// Set field error.
 					$this->set_field_error( $sections[0]['fields'][2], esc_html__( "Invalid password. If two factor authentication is enabled for your account you'll need to use an application specific password.", 'gravityformszohocrm' ) );
+
+					break;
+
+				case 'EXCEEDED_MAXIMUM_ALLOWED_AUTHTOKENS':
+
+					// Log authentication error.
+					$this->log_error( __METHOD__ . '(): Maximum number of allowed auth tokens exceeded.' );
+
+					// Set field error.
+					$this->set_field_error( $sections[0]['fields'][1], esc_html__( 'Maximum number of allowed auth tokens exceeded. You can remove old tokens via the Active Authtokens area of your Zoho account.', 'gravityformszohocrm' ) );
 
 					break;
 
@@ -1226,11 +1241,6 @@ class GFZohoCRM extends GFFeedAddOn {
 		// Loop through module fields.
 		foreach ( $fields as $field ) {
 
-			// If this is a custom field, skip it.
-			if ( rgar( $field, 'custom_field' ) ) {
-				continue;
-			}
-
 			// If this is a non-supported field type, skip it.
 			if ( in_array( $field['type'], array( 'Lookup', 'Pick List', 'OwnerLookup', 'Boolean', 'Currency' ) ) ) {
 				continue;
@@ -1427,7 +1437,7 @@ class GFZohoCRM extends GFFeedAddOn {
 		if ( ! $this->initialize_api() ) {
 
 			// Log that we cannot process the feed.
-			$this->add_feed_error( esc_html__( 'Feed was not processed because API was not initialized.', 'gravityformzohocrm' ), $feed, $entry, $form );
+			$this->add_feed_error( esc_html__( 'Feed was not processed because API was not initialized.', 'gravityformszohocrm' ), $feed, $entry, $form );
 
 			return;
 		}
@@ -1510,7 +1520,7 @@ class GFZohoCRM extends GFFeedAddOn {
 
 		// Add owner ID.
 		if ( rgars( $feed, 'meta/contactOwner' ) ) {
-			$task['SMOWNERID'] = $feed['meta']['contactOwner'];
+			$contact['SMOWNERID'] = $feed['meta']['contactOwner'];
 		}
 
 		// Get standard and custom fields.
@@ -1583,7 +1593,7 @@ class GFZohoCRM extends GFFeedAddOn {
 
 			// Get new contact ID. */
 			$contact_id = 0;
-			foreach ( $contact_record->result->recorddetail as $detail ) {
+			foreach ( $contact_record->result->row->success->details as $detail ) {
 				foreach ( $detail->children() as $field ) {
 					if ( $field['val'] == 'Id' ) {
 						$contact_id = (string) $field;
@@ -1658,7 +1668,7 @@ class GFZohoCRM extends GFFeedAddOn {
 
 		// Add owner ID.
 		if ( rgars( $feed, 'meta/leadOwner' ) ) {
-			$task['SMOWNERID'] = $feed['meta']['leadOwner'];
+			$lead['SMOWNERID'] = $feed['meta']['leadOwner'];
 		}
 
 		// Get standard and custom fields.
@@ -1904,9 +1914,11 @@ class GFZohoCRM extends GFFeedAddOn {
 	 * @uses GF_ZohoCRM_API::upload_file()
 	 */
 	public function upload_attachments( $record_id, $module, $feed, $entry, $form ) {
+		$this->log_debug( __METHOD__ . "(): Running for {$module} #{$record_id}." );
 
 		// If no file upload fields are selected as attachments, exit.
 		if ( ! rgars( $feed, 'meta/' . $module . 'Attachments' ) ) {
+			$this->log_debug( __METHOD__ . '(): aborting; Attachments not enabled.' );
 			return;
 		}
 
@@ -1928,6 +1940,7 @@ class GFZohoCRM extends GFFeedAddOn {
 
 		// If no file upload fields are defined, exit.
 		if ( empty( $file_fields ) ) {
+			$this->log_debug( __METHOD__ . '(): aborting; No fields selected.' );
 			return;
 		}
 
@@ -1935,12 +1948,15 @@ class GFZohoCRM extends GFFeedAddOn {
 		foreach ( $file_fields as $file_field ) {
 
 			// Get files for field.
-			$files = $this->get_field_value( $form, $entry, $field_to_upload );
+			$files = $this->get_field_value( $form, $entry, $file_field );
 
 			// If no files were uploaded for this field, skip it.
 			if ( empty( $files ) ) {
+				$this->log_debug( __METHOD__ . "(): aborting; No files uploaded for field #{$file_field}." );
 				continue;
 			}
+
+			$this->log_debug( __METHOD__ . "(): Processing files for field #{$file_field}." );
 
 			// Convert files value to array.
 			$files = $this->is_json( $files ) ? json_decode( $files, true ) : explode( ' , ', $files );
@@ -2077,24 +2093,28 @@ class GFZohoCRM extends GFFeedAddOn {
 		// If API instance is not initialized, exit.
 		if ( ! $this->initialize_api() ) {
 			$this->log_error( __METHOD__ . '(): Unable to update fields because API is not initialized.' );
-			return;
+
+			return '';
+		}
+
+		try {
+			// Get module fields.
+			$modules = array(
+				'Contacts' => $this->api->get_fields( 'Contacts' ),
+				'Leads'    => $this->api->get_fields( 'Leads' ),
+				'Tasks'    => $this->api->get_fields( 'Tasks' )
+			);
+		} catch ( Exception $e ) {
+			$this->log_error( __METHOD__ . '(): Unable to update fields. ' . $e->getMessage() );
+
+			return '';
 		}
 
 		// Initialize fields array.
 		$fields = array();
 
-		// Get module fields.
-		$modules = array(
-			'Contacts' => $this->api->get_fields( 'Contacts' ),
-			'Leads'    => $this->api->get_fields( 'Leads' ),
-			'Tasks'    => $this->api->get_fields( 'Tasks' )
-		);
-
 		// Loop through modules.
 		foreach ( $modules as $module_name => $module ) {
-
-			// Initialize array to store valid module fields.
-			$module_fields = array();
 
 			// Loop through the module's sections.
 			foreach ( $module['section'] as $section ) {
