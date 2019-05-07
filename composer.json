@@ -1,0 +1,9 @@
+{
+    "name": "wp-premium/gravityformszohocrm",
+    "type": "wordpress-plugin",
+    "autoload": {
+        "classmap": [
+            "."
+        ]
+    }
+}
