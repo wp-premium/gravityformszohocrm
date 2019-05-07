@@ -1,3 +1,15 @@
+# 1.7 | 2019-04-25
+   - Added support for multiple data center when authenticating with v2 API.
+
+
+# 1.6 | 2019-04-15
+   - Added supports for Zoho CRM v2 REST API.
+   - Added supports for Approval Process if "Approval Mode" is checked in feed settings, when authenticated with REST API.
+   - Fixed feed settings not saving when selecting a choice containing an ampersand.
+   - Fixed the setting for delaying feed processing until after payment not being added to the PayPal Standard feed configuration page.
+   - Fixed issue when using special characters to create contacts.
+
+
 # 1.5 | 2018-03-30
    - Added security enhancements.
    - Added logging statements.
