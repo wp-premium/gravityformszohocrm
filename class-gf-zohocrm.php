@@ -234,7 +234,7 @@ class GFZohoCRM extends GFFeedAddOn {
 					),
 				),
 				'strings' => array(
-					'disconnect'   => esc_html__( 'Are you sure you want to disconnect from Zoho CRM?', 'gravityformszohocrm' ),
+					'disconnect'   => wp_strip_all_tags( __( 'Are you sure you want to disconnect from Zoho CRM?', 'gravityformszohocrm' ) ),
 					'settings_url' => admin_url( 'admin.php?page=gf_settings&subview=' . $this->get_slug() ),
 				),
 			),
@@ -355,23 +355,29 @@ class GFZohoCRM extends GFFeedAddOn {
 	public function maybe_update_auth_tokens() {
 		// If access token is provided, save it.
 		if ( rgget( 'auth_payload' ) && ! $this->is_save_postback() ) {
+			$old_authMode = $this->get_setting( 'authMode' );
+
 			$settings     = array();
 			$auth_payload = unserialize( base64_decode( rgget( 'auth_payload' ) ) );
 
 			// Add API info to plugin settings.
 			$settings['authMode']   = 'oauth';
 			$settings['auth_token'] = array(
-				'access_token'    => $auth_payload['access_token'],
-				'refresh_token'   => $auth_payload['refresh_token'],
-				'location'        => $auth_payload['location'],
-				'date_created'    => time(),
+				'access_token'  => $auth_payload['access_token'],
+				'refresh_token' => $auth_payload['refresh_token'],
+				'location'      => $auth_payload['location'],
+				'date_created'  => time(),
 			);
 
 			// Save plugin settings.
 			$this->update_plugin_settings( $settings );
 
-			// Update cached fields.
-			delete_transient( $this->fields_transient_name );
+			if ( $old_authMode !== 'oauth' ) {
+				// Update cached fields.
+				delete_transient( $this->fields_transient_name );
+				// Migrate feed settings.
+				$this->run_api_name_fix();
+			}
 
 			GFCommon::add_message( esc_html__( 'Zoho CRM settings have been updated.', 'gravityformszohocrm' ) );
 		}
@@ -386,103 +392,117 @@ class GFZohoCRM extends GFFeedAddOn {
 	/**
 	 * Setup plugin settings fields.
 	 *
-	 * @since  1.6 Added the OAuth authentication.
+	 * @since  1.7.4 Remove old authentication methods.
+	 * @since  1.6   Added the OAuth authentication.
 	 * @since  1.0
 	 * @access public
 	 *
 	 * @return array
 	 */
 	public function plugin_settings_fields() {
+		$auth_mode = $this->get_plugin_setting( 'authMode' );
 
 		// Prepare plugin description.
-		$description  = '<p>';
+		$description = '<p>';
 		$description .= sprintf(
 			esc_html__( 'Zoho CRM is a contact management tool that gives you a 360-degree view of your complete sales cycle and pipeline. Use Gravity Forms to collect customer information and automatically add it to your Zoho CRM account. If you don\'t have a Zoho CRM account, you can %1$ssign up for one here.%2$s', 'gravityformszohocrm' ),
 			'<a href="http://www.zoho.com/crm/" target="_blank">', '</a>'
 		);
 		$description .= '</p>';
 
+		if ( empty( $auth_mode ) || $auth_mode === 'oauth' ) {
+			$fields = array(
+				array(
+					'name'              => 'auth_token',
+					'type'              => 'auth_token_button',
+					'feedback_callback' => array( $this, 'initialize_api' ),
+				),
+			);
+		} else {
+			$fields = array(
+				array(
+					'name'          => 'authMode',
+					'label'         => esc_html__( 'Authenticate With', 'gravityformszohocrm' ),
+					'type'          => 'radio',
+					'default_value' => is_ssl() ? 'oauth' : 'email',
+					'onclick'       => "jQuery(this).not(':disabled').parents('form').submit();if(jQuery(this).is(':disabled')){return false;}",
+					'choices'       => array(
+						array(
+							'label'    => ! is_ssl() ? esc_html__( 'OAuth Authentication (recommended, you must have an SSL certificate installed and enabled)', 'gravityformszohocrm' ) : esc_html__( 'OAuth Authentication (recommended)', 'gravityformszohocrm' ),
+							'value'    => 'oauth',
+							'disabled' => ! is_ssl() ? 'disabled' : array(),
+							'tooltip'  => '<h6>' . esc_html__( 'OAuth Authentication (recommended)', 'gravityformszohocrm' ) . '</h6>' . esc_html__( 'Communicate with Zoho CRM with their version 2.0 API.', 'gravityformszohocrm' ),
+						),
+						array(
+							'label'   => esc_html__( 'Email Address and Password', 'gravityformszohocrm' ),
+							'value'   => 'email',
+							'tooltip' => '<h6>' . esc_html__( 'Email Address and Password', 'gravityformszohocrm' ) . '</h6>' . sprintf( esc_html__( 'Communicate with Zoho CRM with their version 1.0 API. Version 1.0 API will be sunsetting on Dec 31, 2019, that means you can no longer submit data to Zoho CRM if you still use this method. %sWe strongly recommend you to switch to "REST API" before then%s.', 'gravityformszohocrm' ), '<strong>', '</strong>' ),
+						),
+						array(
+							'label'   => esc_html__( 'Third Party Service (Google Apps, Facebook, Yahoo)', 'gravityformszohocrm' ),
+							'value'   => 'third_party',
+							'tooltip' => '<h6>' . esc_html__( 'Third Party Service', 'gravityformszohocrm' ) . '</h6>' . sprintf( esc_html__( 'Communicate with Zoho CRM with their version 1.0 API. Version 1.0 API will be sunsetting on Dec 31, 2019, that means you can no longer submit data to Zoho CRM if you still use this method. %sWe strongly recommend you to switch to "REST API" before then%s.', 'gravityformszohocrm' ), '<strong>', '</strong>' ),
+						),
+					),
+				),
+				array(
+					'name'              => 'emailAddress',
+					'label'             => esc_html__( 'Email Address', 'gravityformszohocrm' ),
+					'type'              => 'text',
+					'class'             => 'medium',
+					'dependency'        => array( 'field' => 'authMode', 'values' => array( 'email' ) ),
+					'feedback_callback' => array( $this, 'initialize_api' ),
+				),
+				array(
+					'name'              => 'password',
+					'label'             => esc_html__( 'Password', 'gravityformszohocrm' ),
+					'type'              => 'text',
+					'input_type'        => 'password',
+					'class'             => 'medium',
+					'dependency'        => array( 'field' => 'authMode', 'values' => array( 'email' ) ),
+					'feedback_callback' => array( $this, 'initialize_api' ),
+				),
+				array(
+					'name'       => '',
+					'label'      => '',
+					'type'       => 'auth_token_button',
+					'dependency' => array( 'field' => 'authMode', 'values' => array( 'third_party', 'oauth', '' ) ),
+				),
+				array(
+					'name'          => 'authToken',
+					'type'          => 'hidden',
+					'dependency'    => array( 'field' => 'authMode', 'values' => array( 'email' ) ),
+					'save_callback' => array( $this, 'update_auth_token' ),
+				),
+				array(
+					'name'              => 'authToken',
+					'label'             => esc_html__( 'Authentication Token', 'gravityformszohocrm' ),
+					'type'              => 'text',
+					'class'             => 'medium',
+					'dependency'        => array( 'field' => 'authMode', 'values' => array( 'third_party' ) ),
+					'feedback_callback' => array( $this, 'initialize_api' ),
+				),
+				array(
+					'name'              => 'auth_token',
+					'type'              => 'hidden',
+					'dependency'        => array( 'field' => 'authMode', 'values' => array( 'oauth' ) ),
+					'feedback_callback' => array( $this, 'initialize_api' ),
+				),
+				array(
+					'type'       => 'save',
+					'dependency' => array( 'field' => 'authMode', 'values' => array( 'third_party', 'email' ) ),
+					'messages'   => array(
+						'success' => esc_html__( 'Zoho CRM settings have been updated.', 'gravityformszohocrm' ),
+					),
+				),
+			);
+		}
+
 		return array(
 			array(
 				'title'       => '',
 				'description' => $description,
-				'fields'      => array(
-					array(
-						'name'          => 'authMode',
-						'label'         => esc_html__( 'Authenticate With', 'gravityformszohocrm' ),
-						'type'          => 'radio',
-						'default_value' => is_ssl() ? 'oauth' : 'email',
-						'onclick'       => "jQuery(this).not(':disabled').parents('form').submit();if(jQuery(this).is(':disabled')){return false;}",
-						'choices'       => array(
-							array(
-								'label'    => ! is_ssl() ? esc_html__( 'OAuth Authentication (recommended, you must have an SSL certificate installed and enabled)', 'gravityformszohocrm' ) : esc_html__( 'OAuth Authentication (recommended)', 'gravityformszohocrm' ),
-								'value'    => 'oauth',
-								'disabled' => ! is_ssl() ? 'disabled' : array(),
-								'tooltip'  => '<h6>' . esc_html__( 'OAuth Authentication (recommended)', 'gravityformszohocrm' ) . '</h6>' . esc_html__( 'Communicate with Zoho CRM with their version 2.0 API.', 'gravityformszohocrm' ),
-							),
-							array(
-								'label'   => esc_html__( 'Email Address and Password', 'gravityformszohocrm' ),
-								'value'   => 'email',
-								'tooltip' => '<h6>' . esc_html__( 'Email Address and Password', 'gravityformszohocrm' ) . '</h6>' . sprintf( esc_html__( 'Communicate with Zoho CRM with their version 1.0 API. Version 1.0 API will be sunsetting on Dec 31, 2019, that means you can no longer submit data to Zoho CRM if you still use this method. %sWe strongly recommend you to switch to "REST API" before then%s.', 'gravityformszohocrm' ), '<strong>', '</strong>' ),
-							),
-							array(
-								'label'   => esc_html__( 'Third Party Service (Google Apps, Facebook, Yahoo)', 'gravityformszohocrm' ),
-								'value'   => 'third_party',
-								'tooltip' => '<h6>' . esc_html__( 'Third Party Service', 'gravityformszohocrm' ) . '</h6>' . sprintf( esc_html__( 'Communicate with Zoho CRM with their version 1.0 API. Version 1.0 API will be sunsetting on Dec 31, 2019, that means you can no longer submit data to Zoho CRM if you still use this method. %sWe strongly recommend you to switch to "REST API" before then%s.', 'gravityformszohocrm' ), '<strong>', '</strong>' ),
-							),
-						),
-					),
-					array(
-						'name'              => 'emailAddress',
-						'label'             => esc_html__( 'Email Address', 'gravityformszohocrm' ),
-						'type'              => 'text',
-						'class'             => 'medium',
-						'dependency'        => array( 'field' => 'authMode', 'values' => array( 'email' ) ),
-						'feedback_callback' => array( $this, 'initialize_api' ),
-					),
-					array(
-						'name'              => 'password',
-						'label'             => esc_html__( 'Password', 'gravityformszohocrm' ),
-						'type'              => 'text',
-						'input_type'        => 'password',
-						'class'             => 'medium',
-						'dependency'        => array( 'field' => 'authMode', 'values' => array( 'email' ) ),
-						'feedback_callback' => array( $this, 'initialize_api' ),
-					),
-					array(
-						'name'       => '',
-						'label'      => '',
-						'type'       => 'auth_token_button',
-						'dependency' => array( 'field' => 'authMode', 'values' => array( 'third_party', 'oauth', '' ) ),
-					),
-					array(
-						'name'          => 'authToken',
-						'type'          => 'hidden',
-						'dependency'    => array( 'field' => 'authMode', 'values' => array( 'email' ) ),
-						'save_callback' => array( $this, 'update_auth_token' ),
-					),
-					array(
-						'name'              => 'authToken',
-						'label'             => esc_html__( 'Authentication Token', 'gravityformszohocrm' ),
-						'type'              => 'text',
-						'class'             => 'medium',
-						'dependency'        => array( 'field' => 'authMode', 'values' => array( 'third_party' ) ),
-						'feedback_callback' => array( $this, 'initialize_api' ),
-					),
-					array(
-						'name'              => 'auth_token',
-						'type'              => 'hidden',
-						'dependency'        => array( 'field' => 'authMode', 'values' => array( 'oauth' ) ),
-						'feedback_callback' => array( $this, 'initialize_api' ),
-					),
-					array(
-						'type'       => 'save',
-						'dependency' => array( 'field' => 'authMode', 'values' => array( 'third_party', 'email' ) ),
-						'messages'   => array(
-							'success' => esc_html__( 'Zoho CRM settings have been updated.', 'gravityformszohocrm' ),
-						),
-					),
-				),
+				'fields'      => $fields,
 			),
 		);
 
@@ -491,7 +511,8 @@ class GFZohoCRM extends GFFeedAddOn {
 	/**
 	 * Create Generate Auth Token settings field.
 	 *
-	 * @since  1.6 Added a new button for OAuth mode.
+	 * @since  1.7.4 Display SSL Certificate Required message.
+	 * @since  1.6   Added a new button for OAuth mode.
 	 * @since  1.1
 	 * @access public
 	 *
@@ -504,21 +525,29 @@ class GFZohoCRM extends GFFeedAddOn {
 
 		if ( $this->get_setting( 'authMode', 'oauth' ) === 'oauth' ) {
 			if ( $this->initialize_api() ) {
-				$html  = '<p>' . esc_html__( 'Signed into Zoho CRM.', 'gravityformszohocrm' );
+				$html = '<p>' . esc_html__( 'Signed into Zoho CRM.', 'gravityformszohocrm' );
 				$html .= '</p>';
 				$html .= sprintf(
 					' <a href="#" class="button" id="gform_zohocrm_deauth_button">%1$s</a>',
 					esc_html__( 'De-Authorize Zoho CRM', 'gravityformszohocrm' )
 				);
 			} else {
-				$settings_url = urlencode( admin_url( 'admin.php?page=gf_settings&subview=' . $this->_slug ) );
-				$auth_url     = add_query_arg( array( 'redirect_to' => $settings_url ), $this->get_gravity_api_url( '/auth/zoho-crm' ) );
+				// If SSL is available, display custom app settings.
+				if ( is_ssl() ) {
+					$settings_url = urlencode( admin_url( 'admin.php?page=gf_settings&subview=' . $this->_slug ) );
+					$auth_url     = add_query_arg( array( 'redirect_to' => $settings_url ), $this->get_gravity_api_url( '/auth/zoho-crm' ) );
 
-				$html = sprintf(
-					'<a href="%2$s" class="button" id="gform_zohocrm_auth_button">%s</a>',
-					esc_html__( 'Click here to authenticate with Zoho CRM', 'gravityformszohocrm' ),
-					$auth_url
-				);
+					$html = sprintf(
+						'<a href="%2$s" class="button" id="gform_zohocrm_auth_button">%s</a>',
+						esc_html__( 'Click here to authenticate with Zoho CRM', 'gravityformszohocrm' ),
+						$auth_url
+					);
+				} else {
+					$html = '<div class="alert_red" style="padding:20px; padding-top:5px;">';
+					$html .= '<h4>' . esc_html__( 'SSL Certificate Required', 'gravityformszohocrm' ) . '</h4>';
+					$html .= sprintf( esc_html__( 'Make sure you have an SSL certificate installed and enabled, then %1$sclick here to continue%2$s.', 'gravityformszohocrm' ), '<a href="' . admin_url( 'admin.php?page=gf_settings&subview=gravityformszohocrm', 'https' ) . '">', '</a>' );
+					$html .= '</div>';
+				}
 			}
 		} else {
 			// Get accounts API URL.
@@ -704,6 +733,7 @@ class GFZohoCRM extends GFFeedAddOn {
 	/**
 	 * Setup fields for feed settings.
 	 *
+	 * @since  1.7.1 Display settings based on available module.
 	 * @since  1.0
 	 * @access public
 	 *
@@ -716,8 +746,31 @@ class GFZohoCRM extends GFFeedAddOn {
 	 */
 	public function feed_settings_fields() {
 
+		$modules         = $this->get_module_fields();
+		$settings_fields = array();
+
+		$actions = array(
+			array(
+				'label' => esc_html__( 'Select an Action', 'gravityformszohocrm' ),
+				'value' => null,
+			),
+		);
+
+		if ( rgar( $modules, 'Contacts' ) && ! empty( $modules['Contacts'] ) ) {
+			$actions[] = array(
+				'label' => esc_html__( 'Create a New Contact', 'gravityformszohocrm' ),
+				'value' => 'contact',
+			);
+		}
+		if ( rgar( $modules, 'Leads' ) && ! empty( $modules['Leads'] ) ) {
+			$actions[] = array(
+				'label' => esc_html__( 'Create a New Lead', 'gravityformszohocrm' ),
+				'value' => 'lead',
+			);
+		}
+
 		// Prepare base feed settings section.
-		$base_fields = array(
+		$settings_fields[] = array(
 			'fields' => array(
 				array(
 					'name'          => 'feedName',
@@ -734,26 +787,24 @@ class GFZohoCRM extends GFFeedAddOn {
 					'type'     => 'select',
 					'onchange' => "jQuery(this).parents('form').submit();",
 					'tooltip'  => '<h6>' . esc_html__( 'Action', 'gravityformszohocrm' ) . '</h6>' . esc_html__( 'Choose what will happen when this feed is processed.', 'gravityformszohocrm' ),
-					'choices'  => array(
-						array(
-							'label' => esc_html__( 'Select an Action', 'gravityformszohocrm' ),
-							'value' => null,
-						),
-						array(
-							'label' => esc_html__( 'Create a New Contact', 'gravityformszohocrm' ),
-							'value' => 'contact',
-						),
-						array(
-							'label' => esc_html__( 'Create a New Lead', 'gravityformszohocrm' ),
-							'value' => 'lead',
-						),
-					),
+					'choices'  => $actions,
 				),
 			),
 		);
 
+		// Get module feed settings sections.
+		if ( rgar( $modules, 'Contacts' ) && ! empty( $modules['Contacts'] ) ) {
+			$settings_fields[] = $this->contact_feed_settings_fields();
+		}
+		if ( rgar( $modules, 'Leads' ) && ! empty( $modules['Leads'] ) ) {
+			$settings_fields[] = $this->lead_feed_settings_fields();
+		}
+		if ( rgar( $modules, 'Tasks' ) && ! empty( $modules['Tasks'] ) ) {
+			$settings_fields[] = $this->task_feed_settings_fields();
+		}
+
 		// Prepare conditional logic settings section.
-		$conditional_fields = array(
+		$settings_fields[] = array(
 			'title'      => esc_html__( 'Feed Conditional Logic', 'gravityformszohocrm' ),
 			'dependency' => array( 'field' => 'action', 'values' => array( 'contact', 'lead' ) ),
 			'fields'     => array(
@@ -768,13 +819,7 @@ class GFZohoCRM extends GFFeedAddOn {
 			),
 		);
 
-		// Get module feed settings sections.
-		$contact_fields = $this->contact_feed_settings_fields();
-		$lead_fields    = $this->lead_feed_settings_fields();
-		$task_fields    = $this->task_feed_settings_fields();
-
-		return array( $base_fields, $contact_fields, $lead_fields, $task_fields, $conditional_fields );
-
+		return $settings_fields;
 	}
 
 	/**
@@ -1220,6 +1265,7 @@ class GFZohoCRM extends GFFeedAddOn {
 	/**
 	 * Set feed creation control.
 	 *
+	 * @since  1.7.1 Check if Contacts or Leads module available.
 	 * @since  1.0
 	 * @access public
 	 *
@@ -1227,7 +1273,18 @@ class GFZohoCRM extends GFFeedAddOn {
 	 */
 	public function can_create_feed() {
 
-		return $this->initialize_api();
+		if ( $this->initialize_api() ) {
+			$contact_module = $this->get_module_fields( 'Contacts' );
+			$lead_module    = $this->get_module_fields( 'Leads' );
+
+			if ( empty( $contact_module ) && empty( $lead_module ) ) {
+				return false;
+			}
+
+			return true;
+		}
+
+		return false;
 
 	}
 
@@ -1262,6 +1319,26 @@ class GFZohoCRM extends GFFeedAddOn {
 			'action'   => esc_html__( 'Action', 'gravityformszohocrm' ),
 		);
 
+	}
+
+	/**
+	 * Get the require modules message.
+	 *
+	 * @since 1.7.1
+	 *
+	 * @return false|string
+	 */
+	public function feed_list_message() {
+		if ( $this->initialize_api() ) {
+			$contact_module = $this->get_module_fields( 'Contacts' );
+			$lead_module    = $this->get_module_fields( 'Leads' );
+
+			if ( empty( $contact_module ) && empty( $lead_module ) ) {
+				return esc_html__( 'Please show the Contacts or Leads module in your Zoho CRM account to create feed.', 'gravityformszohocrm' );
+			}
+		}
+
+		return GFFeedAddOn::feed_list_message();
 	}
 
 	/**
@@ -1339,8 +1416,8 @@ class GFZohoCRM extends GFFeedAddOn {
 		// Loop through field choices.
 		foreach ( $field['choices'] as $choice ) {
 			// If choice is an array, get display_value.
-			// v2 API returns "actual_value" but it's not available in v1 API,
-			// So we still "display_value" for backwards-compatibility.
+			// It looks display_value is always the same as actual_value,
+			// since Zoho CRM picklist options don't differentiate label and value.
 			if ( is_array( $choice ) && rgar( $choice, 'display_value' ) ) {
 				$choice = $choice['display_value'];
 			}
@@ -1360,6 +1437,7 @@ class GFZohoCRM extends GFFeedAddOn {
 	/**
 	 * Get field map fields for a Zoho CRM module.
 	 *
+	 * @since  1.7.4 Use api_name as field keys.
 	 * @since  1.6 Updated per v2 API changes.
 	 * @since  1.0
 	 * @access public
@@ -1375,7 +1453,7 @@ class GFZohoCRM extends GFFeedAddOn {
 		$field_map = array();
 
 		// Define standard field labels.
-		$standard_fields = array( 'Company', 'Email', 'First Name', 'Last Name' );
+		$standard_fields = array( 'Company', 'Email', 'First_Name', 'Last_Name' );
 
 		// Get fields for module.
 		$fields = $this->get_module_fields( $module );
@@ -1387,17 +1465,17 @@ class GFZohoCRM extends GFFeedAddOn {
 		foreach ( $fields as $field ) {
 
 			// If this is a non-supported field type, skip it.
-			if ( in_array( $field['type'], array( 'lookup', 'picklist', 'ownerlookup', 'boolean', 'currency' ) ) ) {
+			if ( in_array( $field['type'], array( 'lookup', 'picklist', 'ownerlookup', 'currency' ) ) ) {
 				continue;
 			}
 
 			// If this is a standard field map and the field is not a standard field or is not required, skip it.
-			if ( 'standard' === $field_map_type && ! $field['required'] && ! in_array( $field['label'], $standard_fields ) ) {
+			if ( 'standard' === $field_map_type && ! $field['required'] && ! in_array( $field['name'], $standard_fields ) ) {
 				continue;
 			}
 
 			// If this is a dynamic field map and the field matches a standard field or is required, skip it.
-			if ( 'dynamic' === $field_map_type && ( $field['required'] || in_array( $field['label'], $standard_fields ) ) ) {
+			if ( 'dynamic' === $field_map_type && ( $field['required'] || in_array( $field['name'], $standard_fields ) ) ) {
 				continue;
 			}
 
@@ -1425,8 +1503,9 @@ class GFZohoCRM extends GFFeedAddOn {
 
 			// Add field to field map.
 			$field_map[] = array(
-				'name'       => str_replace( ' ', '_', $field['label'] ),
+				'name'       => $field['name'],
 				'label'      => $field['label'],
+				'value'      => $field['name'],
 				'required'   => $field['required'],
 				'field_type' => $field_type,
 			);
@@ -1597,6 +1676,7 @@ class GFZohoCRM extends GFFeedAddOn {
 	/**
 	 * Create a new contact from a feed.
 	 *
+	 * @since  1.7.1 Add feed error when Contacts module is hidden.
 	 * @since  1.6 Updated data format.
 	 * @since  1.0
 	 * @access public
@@ -1608,6 +1688,14 @@ class GFZohoCRM extends GFFeedAddOn {
 	 * @return int|null $contact_id
 	 */
 	public function create_contact( $feed, $entry, $form ) {
+		// Get cached fields.
+		$cached_fields = $this->get_module_fields( 'Contacts' );
+		if ( empty( $cached_fields ) ) {
+			// Log that lead could not be created.
+			$this->add_feed_error( esc_html__( 'Could not create contact; Contacts module is hidden, please check your Zoho CRM account.', 'gravityformszohocrm' ), $feed, $entry, $form );
+
+			return null;
+		}
 
 		// Initialize lead object.
 		$contact = array(
@@ -1640,31 +1728,24 @@ class GFZohoCRM extends GFFeedAddOn {
 		// Merge standard and custom fields arrays.
 		$mapped_fields = array_merge( $standard_fields, $custom_fields );
 
-		// Get cached fields.
-		$cached_fields = $this->get_module_fields( 'Contacts' );
-
 		// Loop through mapped fields.
 		foreach ( $mapped_fields as $field_name => $field_id ) {
-			if ( rgar( $cached_fields, $field_name ) !== '' ) {
-				$field_type   = $cached_fields[ $field_name ]['type'];
-				$field_length = $cached_fields[ $field_name ]['length'];
-				$field_name   = $cached_fields[ $field_name ]['name'];
+			// Get cached module field.
+			$module_field = $this->get_module_field( 'Contacts', $field_name );
+			if ( ! empty( $module_field ) ) {
+				$field_type   = $module_field['type'];
+				$field_length = $module_field['length'];
+				$field_name   = $module_field['name'];
 			} else {
 				// Users might set field name with custom key, and the field couldn't be found in Zoho CRM.
 				$this->add_feed_error( sprintf( esc_html__( "The field %s cannot be found at Zoho CRM.", 'gravityformszohocrm' ), $field_name ), $feed, $entry, $form );
+				$this->log_debug( __METHOD__ . '(): Cached fields: ' . print_r( $cached_fields, true ) );
 
 				continue;
 			}
 
 			// Get field value.
-			$field_value = $this->get_field_value( $form, $entry, $field_id );
-
-			// Update field based on data type.
-			switch ( $field_type ) {
-				case 'datetime':
-					$field_value = date( 'c', strtotime( $field_value ) );
-					break;
-			}
+			$field_value = $this->get_prepared_field_value( $field_id, $field_type, $form, $entry );
 
 			// validate field value length.
 			$_field_value = ( ! is_array( $field_value ) ) ? strval( $field_value ) : json_encode( $field_value );
@@ -1708,6 +1789,7 @@ class GFZohoCRM extends GFFeedAddOn {
 		}
 		if ( $contact['options']['wfTrigger'] ) {
 			$contact_data['trigger'][] = 'workflow';
+			$contact_data['trigger'][] = 'blueprint';
 		}
 
 		// Log contact arguments and XML object.
@@ -1758,6 +1840,19 @@ class GFZohoCRM extends GFFeedAddOn {
 		// Log that contact was created.
 		$this->log_debug( __METHOD__ . '(): Contact #' . $contact_id . " {$action}." );
 
+		/**
+		 * Allow custom actions to be performed after creating contact.
+		 *
+		 * @since 1.8
+		 *
+		 * @param array $contact_record  The contact record.
+		 * @param array $contact         The contact arguments.
+		 * @param array $feed            Feed object.
+		 * @param array $entry           Entry object.
+		 * @param array $form            Form object.
+		 */
+		do_action( 'gform_zohocrm_post_create_contact', $contact_record[0], $contact, $feed, $entry, $form );
+
 		return $contact_id;
 
 	}
@@ -1765,6 +1860,7 @@ class GFZohoCRM extends GFFeedAddOn {
 	/**
 	 * Create a new lead from a feed.
 	 *
+	 * @since  1.7.1 Add feed error when Leads module is hidden.
 	 * @since  1.6 Updated data format.
 	 * @since  1.0
 	 * @access public
@@ -1776,6 +1872,14 @@ class GFZohoCRM extends GFFeedAddOn {
 	 * @return int|null $lead_id
 	 */
 	public function create_lead( $feed, $entry, $form ) {
+		// Get cached fields.
+		$cached_fields = $this->get_module_fields( 'Leads' );
+		if ( empty( $cached_fields ) ) {
+			// Log that lead could not be created.
+			$this->add_feed_error( esc_html__( 'Could not create lead; Leads module is hidden, please check your Zoho CRM account.', 'gravityformszohocrm' ), $feed, $entry, $form );
+
+			return null;
+		}
 
 		// Initialize lead object.
 		$lead = array(
@@ -1810,41 +1914,25 @@ class GFZohoCRM extends GFFeedAddOn {
 		// Merge standard and custom fields arrays.
 		$mapped_fields = array_merge( $standard_fields, $custom_fields );
 
-		// Get cached fields.
-		$cached_fields = $this->get_module_fields( 'Leads' );
-
-		// For backwards-compatibility, translate v1 field name to v2.
-		$_field_names = array(
-			'Designation'     => 'Title',
-			'No of Employees' => 'No. of Employees',
-		);
-
 		// Loop through mapped fields.
 		foreach ( $mapped_fields as $field_name => $field_id ) {
-			if ( rgar( $cached_fields, $field_name ) !== '' ) {
-				$field_type   = $cached_fields[ $field_name ]['type'];
-				$field_length = $cached_fields[ $field_name ]['length'];
-				$field_name   = $cached_fields[ $field_name ]['name'];
-			} elseif ( rgar( $_field_names, $field_name ) !== '' ) {
-				$field_type   = $cached_fields[ $_field_names[ $field_name ] ]['type'];
-				$field_length = $cached_fields[ $_field_names[ $field_name ] ]['length'];
-				$field_name   = $cached_fields[ $_field_names[ $field_name ] ]['name'];
+			// Get cached module field.
+			$module_field = $this->get_module_field( 'Leads', $field_name );
+
+			if ( ! empty( $module_field ) ) {
+				$field_type   = $module_field['type'];
+				$field_length = $module_field['length'];
+				$field_name   = $module_field['name'];
 			} else {
 				// Users might set field name with custom key, and the field couldn't be found in Zoho CRM.
-				$this->add_feed_error( sprintf( esc_html__( 'The field %s cannot be found at Zoho CRM.', 'gravityformszohocrm' ), $field_name ), $feed, $entry, $form );
+				$this->add_feed_error( sprintf( esc_html__( "The field %s cannot be found at Zoho CRM.", 'gravityformszohocrm' ), $field_name ), $feed, $entry, $form );
+				$this->log_debug( __METHOD__ . '(): Cached fields: ' . print_r( $cached_fields, true ) );
 
 				continue;
 			}
 
 			// Get field value.
-			$field_value = $this->get_field_value( $form, $entry, $field_id );
-
-			// Update field based on data type.
-			switch ( $field_type ) {
-				case 'datetime':
-					$field_value = date( 'c', strtotime( $field_value ) );
-					break;
-			}
+			$field_value = $this->get_prepared_field_value( $field_id, $field_type, $form, $entry );
 
 			// validate field value length.
 			$_field_value = ( ! is_array( $field_value ) ) ? strval( $field_value ) : json_encode( $field_value );
@@ -1887,6 +1975,7 @@ class GFZohoCRM extends GFFeedAddOn {
 		}
 		if ( $lead['options']['wfTrigger'] ) {
 			$lead_data['trigger'][] = 'workflow';
+			$lead_data['trigger'][] = 'blueprint';
 		}
 
 		// Log lead arguments and XML object.
@@ -1934,6 +2023,19 @@ class GFZohoCRM extends GFFeedAddOn {
 
 		// Log that lead was created.
 		$this->log_debug( __METHOD__ . '(): Lead #' . $lead_id . " {$action}." );
+
+		/**
+		 * Allow custom actions to be performed after creating lead.
+		 *
+		 * @since 1.8
+		 *
+		 * @param array $lead_record  The lead record.
+		 * @param array $lead         The lead arguments.
+		 * @param array $feed         Feed object.
+		 * @param array $entry        Entry object.
+		 * @param array $form         Form object.
+		 */
+		do_action( 'gform_zohocrm_post_create_lead', $lead_record[0], $lead, $feed, $entry, $form );
 
 		return $lead_id;
 
@@ -2036,6 +2138,19 @@ class GFZohoCRM extends GFFeedAddOn {
 
 		// Log that task was created.
 		$this->log_debug( __METHOD__ . '(): Task #' . $task_id . ' created and assigned to ' . $module . ' #' . $record_id . '.' );
+
+		/**
+		 * Allow custom actions to be performed after creating task.
+		 *
+		 * @since 1.8
+		 *
+		 * @param array $task_record  The task record.
+		 * @param array $task         The task arguments.
+		 * @param array $feed         Feed object.
+		 * @param array $entry        Entry object.
+		 * @param array $form         Form object.
+		 */
+		do_action( 'gform_zohocrm_post_create_task', $task_record[0], $task, $feed, $entry, $form );
 
 		return $task_id;
 
@@ -2268,28 +2383,25 @@ class GFZohoCRM extends GFFeedAddOn {
 			return '';
 		}
 
-		$contacts_fields = $this->api->get_fields( 'Contacts' );
-		$leads_fields    = $this->api->get_fields( 'Leads' );
-		$tasks_fields    = $this->api->get_fields( 'Tasks' );
-
-		if ( is_wp_error( $contacts_fields ) || is_wp_error( $leads_fields ) || is_wp_error( $tasks_fields ) ) {
-			$this->log_error( __METHOD__ . '(): Unable to update fields.' );
-
-			return '';
-		}
-
 		// Get module fields.
-		$modules = array(
-			'Contacts' => $contacts_fields,
-			'Leads'    => $leads_fields,
-			'Tasks'    => $tasks_fields,
-		);
+		$modules = array( 'Contacts', 'Leads', 'Tasks' );
+		$modules_fields = array();
+
+		foreach ( $modules as $module ) {
+			${$module} = $this->api->get_fields( $module );
+			if ( is_wp_error( ${$module} ) ) {
+				$error_data = ${$module}->get_error_data();
+				$this->log_error( __METHOD__ . "(): Unable to update $module fields; error data: " . print_r( $error_data, true ) );
+			} else {
+				$modules_fields[ $module ] = ${$module};
+			}
+		}
 
 		// Initialize fields array.
 		$fields = array();
 
 		// Loop through modules.
-		foreach ( $modules as $module_name => $layouts ) {
+		foreach ( $modules_fields as $module_name => $layouts ) {
 
 			// Loop through layouts.
 			foreach ( $layouts as $layout ) {
@@ -2308,28 +2420,17 @@ class GFZohoCRM extends GFFeedAddOn {
 						continue;
 					}
 
-					// For backwards-compatibility, skip single field section.
-					if ( count( $section_fields ) === 1 ) {
+					// Skip default single field section, will add support to them (image fields etc.).
+					if ( count( $section_fields ) === 1 && false === $section_fields[0]['custom_field'] ) {
 						continue;
 					}
 
-					// For backwards-compatibility, we need to change these field names.
-					$standard_fields = array( 'Company', 'Email', 'First Name', 'Last Name' );
-					// For backwards-compatibility, we need to remove the following fields (they only expose in v2 API).
-					$skipped_fields = array( 'Created Time', 'Modified Time', 'Full Name' );
 					// Loop through the section's fields.
 					foreach ( $section_fields as $section_field ) {
-						if ( in_array( $section_field['field_label'], $skipped_fields, true ) ) {
-							continue;
-						}
-
-						// For backwards-compatibility, v1 API had a bug that used the wrong label for "Title" field.
-						$field_label = ( $section_field['field_label'] === 'Title' ) ? 'Designation' : $section_field['field_label'];
-
 						// Prepare field details.
 						$field = array(
 							'custom_field' => filter_var( $section_field['custom_field'], FILTER_VALIDATE_BOOLEAN ),
-							'label'        => $field_label,
+							'label'        => $section_field['field_label'],
 							'name'         => $section_field['api_name'],
 							'required'     => filter_var( $section_field['required'], FILTER_VALIDATE_BOOLEAN ),
 							'type'         => $section_field['data_type'],
@@ -2341,12 +2442,8 @@ class GFZohoCRM extends GFFeedAddOn {
 							$field['choices'] = $section_field['pick_list_values'];
 						}
 
-						$field_name = $section_field['field_label'];
-						if ( $field['required'] || in_array( $field_name, $standard_fields, true ) ) {
-							$field_name = str_replace( ' ', '_', $section_field['field_label'] );
-						}
 						// Add field to array.
-						$fields[ $module_name ][ $field_name ] = $field;
+						$fields[ $module_name ][ $section_field['api_name'] ] = $field;
 
 					}
 
@@ -2405,6 +2502,37 @@ class GFZohoCRM extends GFFeedAddOn {
 	}
 
 	/**
+	 * Gets the mapped field value in the format required for the specified Zoho CRM field type.
+	 *
+	 * @since 1.8
+	 *
+	 * @param string $field_id   The ID of the form/entry field being processed.
+	 * @param string $field_type The Zoho CRM field type.
+	 * @param array  $form       The form object currently being processed.
+	 * @param array  $entry      The entry object currently being processed.
+	 *
+	 * @return mixed
+	 */
+	public function get_prepared_field_value( $field_id, $field_type, $form, $entry ) {
+
+		// Get field value.
+		$field_value = $this->get_field_value( $form, $entry, $field_id );
+
+		// Update field value based on the Zoho CRM field type.
+		switch ( $field_type ) {
+			case 'boolean':
+				$field_value = ! ( empty( $field_value ) || ( is_string( $field_value ) && strtolower( $field_value ) === 'false' ) );
+				break;
+
+			case 'datetime':
+				$field_value = date( 'c', strtotime( $field_value ) );
+				break;
+		}
+
+		return $field_value;
+	}
+
+	/**
 	 * Get fields for a Zoho CRM module.
 	 *
 	 * @since  1.0
@@ -2426,13 +2554,14 @@ class GFZohoCRM extends GFFeedAddOn {
 		// Convert fields JSON string to array.
 		$fields = json_decode( $fields, true );
 
-		return rgar( $fields, $module ) ? rgar( $fields, $module ) : $fields;
+		return ( null === $module ) ? $fields : ( rgar( $fields, $module ) ? rgar( $fields, $module ) : array() );
 
 	}
 
 	/**
 	 * Get field from a Zoho CRM module.
 	 *
+	 * @since  1.7.2  Look up api_name in cached fields too.
 	 * @since  1.0
 	 * @access public
 	 *
@@ -2447,12 +2576,14 @@ class GFZohoCRM extends GFFeedAddOn {
 
 		// Get fields for module.
 		$module_fields = $this->get_module_fields( $module );
+		// Get api_name for field.
+		$api_name = str_replace( ' ', '_', $field_name );
 
 		// Loop through module fields.
 		foreach ( $module_fields as $module_field ) {
 
-			// If field label matches the field name, return field.
-			if ( rgar( $module_field, 'label' ) === $field_name ) {
+			// If label or name (api_name) matches, return field.
+			if ( rgar( $module_field, 'label' ) === $field_name || rgar( $module_field, 'name' ) === $api_name ) {
 				return $module_field;
 			}
 
@@ -2501,35 +2632,29 @@ class GFZohoCRM extends GFFeedAddOn {
 	/**
 	 * Checks if a previous version was installed and runs any needed migration processes.
 	 *
+	 * @since  1.7.4  Upgrades for v2 API.
 	 * @since  1.1.5
 	 * @access public
 	 *
 	 * @param string $previous_version The version number of the previously installed version.
 	 *
-	 * @uses GFZohoCRM::run_foreign_language_fix()
 	 */
 	public function upgrade( $previous_version ) {
 
-		$previous_is_pre_foreign_language_fix = ! empty( $previous_version ) && version_compare( $previous_version, '1.1.5', '<' );
+		$previous_is_pre_api_name_fix = ! empty( $previous_version ) && version_compare( $previous_version, '1.7.4', '<' );
 
-		if ( $previous_is_pre_foreign_language_fix ) {
-			$this->run_foreign_language_fix();
+		if ( $previous_is_pre_api_name_fix && $this->get_plugin_setting( 'authMode' ) === 'oauth' ) {
+			$this->run_api_name_fix();
 		}
 
 	}
 
 	/**
-	 * Updates feeds to use Zoho CRM module field label instead of field name.
+	 * Upgrade feeds to use api_name as field keys.
 	 *
-	 * @since  1.1.5
-	 * @access public
-	 *
-	 * @uses GFFeedAddOn::get_feeds()
-	 * @uses GFFeedAddOn::update_feed_meta()
-	 * @uses GFZohoCRM::get_module_fields()
+	 * @since 1.7.4
 	 */
-	public function run_foreign_language_fix() {
-
+	public function run_api_name_fix() {
 		// Get the Zoho CRM feeds.
 		$feeds = $this->get_feeds();
 
@@ -2539,27 +2664,14 @@ class GFZohoCRM extends GFFeedAddOn {
 
 				$contact_fields = $this->get_module_fields( 'Contacts' );
 
-				foreach ( $contact_fields as $contact_field ) {
-
-					$search_for   = 'contactStandardFields_' . str_replace( ' ', '_', $contact_field['name'] );
-					$replace_with = 'contactStandardFields_' . str_replace( ' ', '_', $contact_field['label'] );
-
-					if ( rgars( $feed, 'meta/' . $search_for ) ) {
-						$value = rgars( $feed, 'meta/' . $search_for );
-						unset( $feed['meta'][ $search_for ] );
-						$feed['meta'][ $replace_with ] = $value;
-					}
-
-				}
-
 				if ( rgars( $feed, 'meta/contactCustomFields' ) ) {
 
 					foreach ( $contact_fields as $contact_field ) {
 
 						foreach ( $feed['meta']['contactCustomFields'] as &$feed_custom_field ) {
 
-							if ( $feed_custom_field['key'] === $contact_field['name'] ) {
-								$feed_custom_field['key'] = $contact_field['label'];
+							if ( $feed_custom_field['key'] === $contact_field['label'] || $feed_custom_field['key'] === str_replace( '_', ' ', $contact_field['name'] ) ) {
+								$feed_custom_field['key'] = $contact_field['name'];
 							}
 
 						}
@@ -2574,27 +2686,14 @@ class GFZohoCRM extends GFFeedAddOn {
 
 				$lead_fields = $this->get_module_fields( 'Leads' );
 
-				foreach ( $lead_fields as $lead_field ) {
-
-					$search_for   = 'leadStandardFields_' . str_replace( ' ', '_', $lead_field['name'] );
-					$replace_with = 'leadStandardFields_' . str_replace( ' ', '_', $lead_field['label'] );
-
-					if ( rgars( $feed, 'meta/' . $search_for ) ) {
-						$value = rgars( $feed, 'meta/' . $search_for );
-						unset( $feed['meta'][ $search_for ] );
-						$feed['meta'][ $replace_with ] = $value;
-					}
-
-				}
-
 				if ( rgars( $feed, 'meta/leadCustomFields' ) ) {
 
 					foreach ( $lead_fields as $lead_field ) {
 
 						foreach ( $feed['meta']['leadCustomFields'] as &$feed_custom_field ) {
 
-							if ( $feed_custom_field['key'] === $lead_field['name'] ) {
-								$feed_custom_field['key'] = $lead_field['label'];
+							if ( $feed_custom_field['key'] === $lead_field['label'] || $feed_custom_field['key'] === str_replace( '_', ' ', $lead_field['name'] ) ) {
+								$feed_custom_field['key'] = $lead_field['name'];
 							}
 
 						}
@@ -2608,7 +2707,6 @@ class GFZohoCRM extends GFFeedAddOn {
 			$this->update_feed_meta( $feed['id'], $feed['meta'] );
 
 		}
-
 	}
 
 	/**

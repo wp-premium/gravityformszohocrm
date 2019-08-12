@@ -510,6 +510,8 @@ class GF_ZohoCRM_API {
 			$error_data = array( 'status' => $retrieved_response_code );
 			if ( rgar( $json_body, 'data' ) !== '' ) {
 				$error_data['data'] = $json_body['data'];
+			} elseif ( rgar( $json_body, 'message' ) !== '' ) {
+				$error_data['data'] = $json_body['message'];
 			}
 
 			return new WP_Error( 'zohocrm_api_error', $error_message, $error_data );
