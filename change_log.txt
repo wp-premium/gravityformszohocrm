@@ -1,6 +1,31 @@
+### 1.12 | 2020-09-23
+- Added support for Gravity Forms 2.5.
+- Fixed an issue where the add-on would attempt to use deactivated module layouts.
+
+
+### 1.11 | 2020-07-14
+- Added security enhancements.
+- Fixed an infinite loop which occurred when the record insert error returned by Zoho CRM is missing the api_name.
+
+
+### 1.10
+- Added security enhancements.
+
+
+### 1.9 | 2020-05-14
+- Added translations for Hebrew, Hindi, Japanese, and Turkish.
+- Added support for the Australia (AU) data center.
+- Added license key to authorization url.
+- Added the *[gform_zohocrm_record](https://docs.gravityforms.com/gform_zohocrm_record/)* filter to modify the record arguments before they are sent to Zoho CRM.
+- Fixed the width of the Feed Name setting on the feed configuration page.
+- Fixed an issue where PHP notices thrown after `gform_zohocrm_record` introduced.
+- Fixed an issue where PHP notices thrown when the contact or lead has no Email but doesn't allow duplicate in the settings.
+- Updated a few labels on the settings page related to connecting and disconnecting the add-on with Zoho CRM.
+
+
 ### 1.8 | 2019-08-08
 - Added security enhancements.
-- Added gform_zohocrm_post_create_lead, gform_zohocrm_post_create_contact and gform_zohocrm_post_create_task, to allow custom actions to be performed after creating a lead, contact or task.
+- Added [gform_zohocrm_post_create_lead](https://docs.gravityforms.com/gform_zohocrm_post_create_lead/), [gform_zohocrm_post_create_contact](https://docs.gravityforms.com/gform_zohocrm_post_create_contact/) and [gform_zohocrm_post_create_task](https://docs.gravityforms.com/gform_zohocrm_post_create_task/), to allow custom actions to be performed after creating a lead, contact or task.
 - Updated Authenticate With options. After switching to OAuth Authentication, remove the other old options.
 - Updated the feed configuration page to support mapping checkbox (boolean) type Zoho fields.
 - Fixed an issue when a Zoho account used a non-English language, some module fields couldn't be updated with REST API.

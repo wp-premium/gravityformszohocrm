@@ -1,17 +1,17 @@
-# Copyright (C) 2019 rocketgenius
-# This file is distributed under the same license as the Gravity Forms Zoho CRM Add-On plugin.
+# Copyright (C) 2020 Gravity Forms
+# This file is distributed under the GPL-2.0+.
 msgid ""
 msgstr ""
-"Project-Id-Version: Gravity Forms Zoho CRM Add-On 1.8\n"
+"Project-Id-Version: Gravity Forms Zoho CRM Add-On 1.12\n"
 "Report-Msgid-Bugs-To: https://gravityforms.com/support\n"
 "Last-Translator: Gravity Forms <support@gravityforms.com>\n"
 "Language-Team: Gravity Forms <support@gravityforms.com>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2019-08-07T14:14:16+00:00\n"
+"POT-Creation-Date: 2020-09-23T15:29:45+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"X-Generator: WP-CLI 2.2.0\n"
+"X-Generator: WP-CLI 2.4.0\n"
 "X-Domain: gravityformszohocrm\n"
 
 #. Plugin Name of the plugin
@@ -19,7 +19,8 @@ msgid "Gravity Forms Zoho CRM Add-On"
 msgstr ""
 
 #. Plugin URI of the plugin
-msgid "https://www.gravityforms.com"
+#. Author URI of the plugin
+msgid "https://gravityforms.com"
 msgstr ""
 
 #. Description of the plugin
@@ -27,242 +28,241 @@ msgid "Integrates Gravity Forms with Zoho CRM, allowing form submissions to be a
 msgstr ""
 
 #. Author of the plugin
-msgid "rocketgenius"
+msgid "Gravity Forms"
 msgstr ""
 
-#. Author URI of the plugin
-msgid "https://www.rocketgenius.com"
-msgstr ""
-
-#: class-gf-zohocrm.php:195
+#: class-gf-zohocrm.php:206
 #: includes/legacy/class-gf-zohocrm.php:220
 msgid "Create record in Zoho CRM only when payment is received."
 msgstr ""
 
-#: class-gf-zohocrm.php:237
+#: class-gf-zohocrm.php:248
 msgid "Are you sure you want to disconnect from Zoho CRM?"
 msgstr ""
 
-#: class-gf-zohocrm.php:299
-#: class-gf-zohocrm.php:301
+#: class-gf-zohocrm.php:326
+#: includes/legacy/class-gf-zohocrm.php:284
+msgid "Due to Zoho CRM's daily API usage limits, Gravity Forms stores Zoho CRM custom fields data for twelve hours. If you make a change to your custom fields, you might not see it reflected immediately due to this data caching. To manually clear the custom fields cache, click the button below."
+msgstr ""
+
+#: class-gf-zohocrm.php:327
+#: class-gf-zohocrm.php:542
 #: includes/legacy/class-gf-zohocrm.php:283
 #: includes/legacy/class-gf-zohocrm.php:285
 msgid "Clear Custom Fields Cache"
 msgstr ""
 
-#: class-gf-zohocrm.php:300
-#: includes/legacy/class-gf-zohocrm.php:284
-msgid "Due to Zoho CRM's daily API usage limits, Gravity Forms stores Zoho CRM custom fields data for twelve hours. If you make a change to your custom fields, you might not see it reflected immediately due to this data caching. To manually clear the custom fields cache, click the button below."
-msgstr ""
-
-#: class-gf-zohocrm.php:346
+#: class-gf-zohocrm.php:373
 #: includes/legacy/class-gf-zohocrm.php:328
 msgid "Custom fields cache has been cleared."
 msgstr ""
 
-#: class-gf-zohocrm.php:382
-#: class-gf-zohocrm.php:495
+#: class-gf-zohocrm.php:388
+msgid "Unable to connect to Zoho CRM due to mismatched state."
+msgstr ""
+
+#: class-gf-zohocrm.php:416
+#: class-gf-zohocrm.php:529
 #: includes/legacy/class-gf-zohocrm.php:412
 msgid "Zoho CRM settings have been updated."
 msgstr ""
 
-#: class-gf-zohocrm.php:388
-msgid "Unable to authenticate with Zoho CRM."
+#: class-gf-zohocrm.php:422
+msgid "Unable to connect to Zoho CRM."
 msgstr ""
 
-#: class-gf-zohocrm.php:408
+#: class-gf-zohocrm.php:442
 #: includes/legacy/class-gf-zohocrm.php:345
 msgid "Zoho CRM is a contact management tool that gives you a 360-degree view of your complete sales cycle and pipeline. Use Gravity Forms to collect customer information and automatically add it to your Zoho CRM account. If you don't have a Zoho CRM account, you can %1$ssign up for one here.%2$s"
 msgstr ""
 
-#: class-gf-zohocrm.php:425
-#: includes/legacy/class-gf-zohocrm.php:357
-msgid "Authenticate With"
+#: class-gf-zohocrm.php:459
+msgid "Connect With"
 msgstr ""
 
-#: class-gf-zohocrm.php:431
+#: class-gf-zohocrm.php:465
 msgid "OAuth Authentication (recommended, you must have an SSL certificate installed and enabled)"
 msgstr ""
 
-#: class-gf-zohocrm.php:431
-#: class-gf-zohocrm.php:434
+#: class-gf-zohocrm.php:465
+#: class-gf-zohocrm.php:468
 msgid "OAuth Authentication (recommended)"
 msgstr ""
 
-#: class-gf-zohocrm.php:434
+#: class-gf-zohocrm.php:468
 msgid "Communicate with Zoho CRM with their version 2.0 API."
 msgstr ""
 
-#: class-gf-zohocrm.php:437
-#: class-gf-zohocrm.php:439
+#: class-gf-zohocrm.php:471
+#: class-gf-zohocrm.php:473
 #: includes/legacy/class-gf-zohocrm.php:363
 msgid "Email Address and Password"
 msgstr ""
 
-#: class-gf-zohocrm.php:439
-#: class-gf-zohocrm.php:444
+#: class-gf-zohocrm.php:473
+#: class-gf-zohocrm.php:478
 msgid "Communicate with Zoho CRM with their version 1.0 API. Version 1.0 API will be sunsetting on Dec 31, 2019, that means you can no longer submit data to Zoho CRM if you still use this method. %sWe strongly recommend you to switch to \"REST API\" before then%s."
 msgstr ""
 
-#: class-gf-zohocrm.php:442
+#: class-gf-zohocrm.php:476
 #: includes/legacy/class-gf-zohocrm.php:367
 msgid "Third Party Service (Google Apps, Facebook, Yahoo)"
 msgstr ""
 
-#: class-gf-zohocrm.php:444
+#: class-gf-zohocrm.php:478
 msgid "Third Party Service"
 msgstr ""
 
-#: class-gf-zohocrm.php:450
+#: class-gf-zohocrm.php:484
 #: includes/legacy/class-gf-zohocrm.php:374
 msgid "Email Address"
 msgstr ""
 
-#: class-gf-zohocrm.php:458
+#: class-gf-zohocrm.php:492
 #: includes/legacy/class-gf-zohocrm.php:382
 msgid "Password"
 msgstr ""
 
-#: class-gf-zohocrm.php:479
+#: class-gf-zohocrm.php:513
 #: includes/legacy/class-gf-zohocrm.php:403
 msgid "Authentication Token"
 msgstr ""
 
-#: class-gf-zohocrm.php:528
-msgid "Signed into Zoho CRM."
+#: class-gf-zohocrm.php:572
+msgid "Connected to Zoho CRM."
 msgstr ""
 
-#: class-gf-zohocrm.php:532
-msgid "De-Authorize Zoho CRM"
+#: class-gf-zohocrm.php:576
+msgid "Disconnect from Zoho CRM"
 msgstr ""
 
-#: class-gf-zohocrm.php:542
-msgid "Click here to authenticate with Zoho CRM"
+#: class-gf-zohocrm.php:594
+msgid "Click here to connect to Zoho CRM"
 msgstr ""
 
-#: class-gf-zohocrm.php:547
+#: class-gf-zohocrm.php:599
 msgid "SSL Certificate Required"
 msgstr ""
 
-#: class-gf-zohocrm.php:548
+#: class-gf-zohocrm.php:600
 msgid "Make sure you have an SSL certificate installed and enabled, then %1$sclick here to continue%2$s."
 msgstr ""
 
-#: class-gf-zohocrm.php:560
+#: class-gf-zohocrm.php:612
 #: includes/legacy/class-gf-zohocrm.php:441
 msgid "Click here to generate an authentication token."
 msgstr ""
 
-#: class-gf-zohocrm.php:676
-#: class-gf-zohocrm.php:697
+#: class-gf-zohocrm.php:728
+#: class-gf-zohocrm.php:749
 #: includes/legacy/class-gf-zohocrm.php:541
 #: includes/legacy/class-gf-zohocrm.php:562
 msgid "User does not exist."
 msgstr ""
 
-#: class-gf-zohocrm.php:677
-#: class-gf-zohocrm.php:687
+#: class-gf-zohocrm.php:729
+#: class-gf-zohocrm.php:739
 #: includes/legacy/class-gf-zohocrm.php:542
 #: includes/legacy/class-gf-zohocrm.php:552
 msgid "Invalid password."
 msgstr ""
 
-#: class-gf-zohocrm.php:707
+#: class-gf-zohocrm.php:759
 #: includes/legacy/class-gf-zohocrm.php:572
 msgid "Invalid password. If two factor authentication is enabled for your account you'll need to use an application specific password."
 msgstr ""
 
-#: class-gf-zohocrm.php:717
+#: class-gf-zohocrm.php:769
 #: includes/legacy/class-gf-zohocrm.php:582
 msgid "Maximum number of allowed auth tokens exceeded. You can remove old tokens via the Active Authtokens area of your Zoho account."
 msgstr ""
 
-#: class-gf-zohocrm.php:754
+#: class-gf-zohocrm.php:806
 #: includes/legacy/class-gf-zohocrm.php:633
 msgid "Select an Action"
 msgstr ""
 
-#: class-gf-zohocrm.php:761
-#: class-gf-zohocrm.php:1358
+#: class-gf-zohocrm.php:813
+#: class-gf-zohocrm.php:1434
 #: includes/legacy/class-gf-zohocrm.php:637
 #: includes/legacy/class-gf-zohocrm.php:1175
 msgid "Create a New Contact"
 msgstr ""
 
-#: class-gf-zohocrm.php:767
-#: class-gf-zohocrm.php:1363
+#: class-gf-zohocrm.php:819
+#: class-gf-zohocrm.php:1439
 #: includes/legacy/class-gf-zohocrm.php:641
 #: includes/legacy/class-gf-zohocrm.php:1180
 msgid "Create a New Lead"
 msgstr ""
 
-#: class-gf-zohocrm.php:777
+#: class-gf-zohocrm.php:829
 #: includes/legacy/class-gf-zohocrm.php:618
 msgid "Feed Name"
 msgstr ""
 
-#: class-gf-zohocrm.php:781
-#: class-gf-zohocrm.php:1318
+#: class-gf-zohocrm.php:834
+#: class-gf-zohocrm.php:1394
 #: includes/legacy/class-gf-zohocrm.php:622
 #: includes/legacy/class-gf-zohocrm.php:1155
 msgid "Name"
 msgstr ""
 
-#: class-gf-zohocrm.php:781
+#: class-gf-zohocrm.php:834
 #: includes/legacy/class-gf-zohocrm.php:622
 msgid "Enter a feed name to uniquely identify this setup."
 msgstr ""
 
-#: class-gf-zohocrm.php:785
-#: class-gf-zohocrm.php:789
-#: class-gf-zohocrm.php:1319
+#: class-gf-zohocrm.php:838
+#: class-gf-zohocrm.php:842
+#: class-gf-zohocrm.php:1395
 #: includes/legacy/class-gf-zohocrm.php:626
 #: includes/legacy/class-gf-zohocrm.php:630
 #: includes/legacy/class-gf-zohocrm.php:1156
 msgid "Action"
 msgstr ""
 
-#: class-gf-zohocrm.php:789
+#: class-gf-zohocrm.php:842
 #: includes/legacy/class-gf-zohocrm.php:630
 msgid "Choose what will happen when this feed is processed."
 msgstr ""
 
-#: class-gf-zohocrm.php:808
+#: class-gf-zohocrm.php:861
 #: includes/legacy/class-gf-zohocrm.php:651
 msgid "Feed Conditional Logic"
 msgstr ""
 
-#: class-gf-zohocrm.php:814
-#: class-gf-zohocrm.php:817
+#: class-gf-zohocrm.php:867
+#: class-gf-zohocrm.php:870
 #: includes/legacy/class-gf-zohocrm.php:657
 #: includes/legacy/class-gf-zohocrm.php:660
 msgid "Conditional Logic"
 msgstr ""
 
-#: class-gf-zohocrm.php:815
+#: class-gf-zohocrm.php:868
 #: includes/legacy/class-gf-zohocrm.php:658
 msgid "Enable"
 msgstr ""
 
-#: class-gf-zohocrm.php:816
+#: class-gf-zohocrm.php:869
 #: includes/legacy/class-gf-zohocrm.php:659
 msgid "Export to Zoho CRM if"
 msgstr ""
 
-#: class-gf-zohocrm.php:817
+#: class-gf-zohocrm.php:870
 #: includes/legacy/class-gf-zohocrm.php:660
 msgid "When conditional logic is enabled, form submissions will only be exported to Zoho CRM when the condition is met. When disabled, all form submissions will be posted."
 msgstr ""
 
-#: class-gf-zohocrm.php:843
+#: class-gf-zohocrm.php:896
 #: includes/legacy/class-gf-zohocrm.php:692
 msgid "Contact Details"
 msgstr ""
 
-#: class-gf-zohocrm.php:848
-#: class-gf-zohocrm.php:851
-#: class-gf-zohocrm.php:968
-#: class-gf-zohocrm.php:971
+#: class-gf-zohocrm.php:901
+#: class-gf-zohocrm.php:904
+#: class-gf-zohocrm.php:1021
+#: class-gf-zohocrm.php:1024
 #: includes/legacy/class-gf-zohocrm.php:697
 #: includes/legacy/class-gf-zohocrm.php:700
 #: includes/legacy/class-gf-zohocrm.php:817
@@ -270,77 +270,77 @@ msgstr ""
 msgid "Map Fields"
 msgstr ""
 
-#: class-gf-zohocrm.php:851
-#: class-gf-zohocrm.php:971
+#: class-gf-zohocrm.php:904
+#: class-gf-zohocrm.php:1024
 #: includes/legacy/class-gf-zohocrm.php:700
 #: includes/legacy/class-gf-zohocrm.php:820
 msgid "Select which Gravity Form fields pair with their respective Zoho CRM fields."
 msgstr ""
 
-#: class-gf-zohocrm.php:861
+#: class-gf-zohocrm.php:914
 #: includes/legacy/class-gf-zohocrm.php:710
 msgid "Contact Owner"
 msgstr ""
 
-#: class-gf-zohocrm.php:869
+#: class-gf-zohocrm.php:922
 #: includes/legacy/class-gf-zohocrm.php:718
 msgid "Contact Description"
 msgstr ""
 
-#: class-gf-zohocrm.php:873
-#: class-gf-zohocrm.php:993
+#: class-gf-zohocrm.php:926
+#: class-gf-zohocrm.php:1046
 #: includes/legacy/class-gf-zohocrm.php:722
 #: includes/legacy/class-gf-zohocrm.php:842
 msgid "Options"
 msgstr ""
 
-#: class-gf-zohocrm.php:878
-#: class-gf-zohocrm.php:998
+#: class-gf-zohocrm.php:931
+#: class-gf-zohocrm.php:1051
 #: includes/legacy/class-gf-zohocrm.php:727
 #: includes/legacy/class-gf-zohocrm.php:847
 msgid "Approval Mode"
 msgstr ""
 
-#: class-gf-zohocrm.php:882
-#: class-gf-zohocrm.php:1002
+#: class-gf-zohocrm.php:935
+#: class-gf-zohocrm.php:1055
 #: includes/legacy/class-gf-zohocrm.php:731
 #: includes/legacy/class-gf-zohocrm.php:851
 msgid "Workflow Mode"
 msgstr ""
 
-#: class-gf-zohocrm.php:886
-#: class-gf-zohocrm.php:1006
+#: class-gf-zohocrm.php:939
+#: class-gf-zohocrm.php:1059
 #: includes/legacy/class-gf-zohocrm.php:735
 #: includes/legacy/class-gf-zohocrm.php:855
 msgid "Email Opt Out"
 msgstr ""
 
-#: class-gf-zohocrm.php:890
+#: class-gf-zohocrm.php:943
 #: includes/legacy/class-gf-zohocrm.php:739
 msgid "Allow duplicate contacts"
 msgstr ""
 
-#: class-gf-zohocrm.php:891
+#: class-gf-zohocrm.php:944
 #: includes/legacy/class-gf-zohocrm.php:740
 msgid "If duplicate contacts are allowed, you will not be able to update contacts if they already exist."
 msgstr ""
 
-#: class-gf-zohocrm.php:895
+#: class-gf-zohocrm.php:948
 #: includes/legacy/class-gf-zohocrm.php:744
 msgid "Update Contact if contact already exists for email address"
 msgstr ""
 
-#: class-gf-zohocrm.php:911
-#: class-gf-zohocrm.php:1050
+#: class-gf-zohocrm.php:964
+#: class-gf-zohocrm.php:1103
 #: includes/legacy/class-gf-zohocrm.php:760
 #: includes/legacy/class-gf-zohocrm.php:899
 msgid "Lead Source"
 msgstr ""
 
-#: class-gf-zohocrm.php:931
-#: class-gf-zohocrm.php:933
-#: class-gf-zohocrm.php:1089
-#: class-gf-zohocrm.php:1091
+#: class-gf-zohocrm.php:984
+#: class-gf-zohocrm.php:986
+#: class-gf-zohocrm.php:1142
+#: class-gf-zohocrm.php:1144
 #: includes/legacy/class-gf-zohocrm.php:780
 #: includes/legacy/class-gf-zohocrm.php:782
 #: includes/legacy/class-gf-zohocrm.php:938
@@ -348,172 +348,189 @@ msgstr ""
 msgid "Attachments"
 msgstr ""
 
-#: class-gf-zohocrm.php:933
-#: class-gf-zohocrm.php:1091
+#: class-gf-zohocrm.php:986
+#: class-gf-zohocrm.php:1144
 #: includes/legacy/class-gf-zohocrm.php:782
 #: includes/legacy/class-gf-zohocrm.php:940
 msgid "Zoho CRM has a maximum file size of 20MB. Any file larger than this will not be uploaded. Additionally, files will not be uploaded if you have reached the storage allocation for your Zoho CRM account."
 msgstr ""
 
-#: class-gf-zohocrm.php:963
+#: class-gf-zohocrm.php:1016
 #: includes/legacy/class-gf-zohocrm.php:812
 msgid "Lead Details"
 msgstr ""
 
-#: class-gf-zohocrm.php:981
+#: class-gf-zohocrm.php:1034
 #: includes/legacy/class-gf-zohocrm.php:830
 msgid "Lead Owner"
 msgstr ""
 
-#: class-gf-zohocrm.php:989
+#: class-gf-zohocrm.php:1042
 #: includes/legacy/class-gf-zohocrm.php:838
 msgid "Lead Description"
 msgstr ""
 
-#: class-gf-zohocrm.php:1010
+#: class-gf-zohocrm.php:1063
 #: includes/legacy/class-gf-zohocrm.php:859
 msgid "Allow duplicate leads"
 msgstr ""
 
-#: class-gf-zohocrm.php:1011
+#: class-gf-zohocrm.php:1064
 #: includes/legacy/class-gf-zohocrm.php:860
 msgid "If duplicate leads are allowed, you will not be able to update leads if they already exist."
 msgstr ""
 
-#: class-gf-zohocrm.php:1015
+#: class-gf-zohocrm.php:1068
 #: includes/legacy/class-gf-zohocrm.php:864
 msgid "Update Lead if lead already exists for email address"
 msgstr ""
 
-#: class-gf-zohocrm.php:1031
+#: class-gf-zohocrm.php:1084
 #: includes/legacy/class-gf-zohocrm.php:880
 msgid "Lead Rating"
 msgstr ""
 
-#: class-gf-zohocrm.php:1069
+#: class-gf-zohocrm.php:1122
 #: includes/legacy/class-gf-zohocrm.php:918
 msgid "Lead Status"
 msgstr ""
 
-#: class-gf-zohocrm.php:1122
+#: class-gf-zohocrm.php:1175
 #: includes/legacy/class-gf-zohocrm.php:971
 msgid "Task Details"
 msgstr ""
 
-#: class-gf-zohocrm.php:1127
+#: class-gf-zohocrm.php:1180
 #: includes/legacy/class-gf-zohocrm.php:976
 msgid "Create Task"
 msgstr ""
 
-#: class-gf-zohocrm.php:1134
+#: class-gf-zohocrm.php:1187
 #: includes/legacy/class-gf-zohocrm.php:983
 msgid "Create Task for %s"
 msgstr ""
 
-#: class-gf-zohocrm.php:1144
+#: class-gf-zohocrm.php:1197
 #: includes/legacy/class-gf-zohocrm.php:993
 msgid "Task Subject"
 msgstr ""
 
-#: class-gf-zohocrm.php:1152
+#: class-gf-zohocrm.php:1205
 #: includes/legacy/class-gf-zohocrm.php:1001
 msgid "Days Until Due"
 msgstr ""
 
-#: class-gf-zohocrm.php:1158
+#: class-gf-zohocrm.php:1211
 #: includes/legacy/class-gf-zohocrm.php:1007
 msgid "Task Owner"
 msgstr ""
 
-#: class-gf-zohocrm.php:1167
+#: class-gf-zohocrm.php:1220
 #: includes/legacy/class-gf-zohocrm.php:1016
 msgid "Task Description"
 msgstr ""
 
-#: class-gf-zohocrm.php:1182
+#: class-gf-zohocrm.php:1235
 #: includes/legacy/class-gf-zohocrm.php:1031
 msgid "Task Status"
 msgstr ""
 
-#: class-gf-zohocrm.php:1337
+#: class-gf-zohocrm.php:1413
 msgid "Please show the Contacts or Leads module in your Zoho CRM account to create feed."
 msgstr ""
 
-#: class-gf-zohocrm.php:1366
+#: class-gf-zohocrm.php:1442
 #: includes/legacy/class-gf-zohocrm.php:1183
 msgid "No Action"
 msgstr ""
 
-#: class-gf-zohocrm.php:1386
+#: class-gf-zohocrm.php:1462
 #: includes/legacy/class-gf-zohocrm.php:1203
 msgid "This field must be numeric or a merge tag."
 msgstr ""
 
-#: class-gf-zohocrm.php:1533
+#: class-gf-zohocrm.php:1609
 #: includes/legacy/class-gf-zohocrm.php:1350
 msgid "-None-"
 msgstr ""
 
-#: class-gf-zohocrm.php:1641
+#: class-gf-zohocrm.php:1717
 #: includes/legacy/class-gf-zohocrm.php:1478
 msgid "Feed was not processed because API was not initialized."
 msgstr ""
 
-#: class-gf-zohocrm.php:1695
+#: class-gf-zohocrm.php:1771
 msgid "Could not create contact; Contacts module is hidden, please check your Zoho CRM account."
 msgstr ""
 
-#: class-gf-zohocrm.php:1741
-#: class-gf-zohocrm.php:1928
+#: class-gf-zohocrm.php:1817
+#: class-gf-zohocrm.php:2010
 msgid "The field %s cannot be found at Zoho CRM."
 msgstr ""
 
-#: class-gf-zohocrm.php:1753
-#: class-gf-zohocrm.php:1940
+#: class-gf-zohocrm.php:1829
+#: class-gf-zohocrm.php:2022
 msgid "The value of %s cannot be sent to Zoho CRM. Reason: The characters of the field value exceed %d."
 msgstr ""
 
-#: class-gf-zohocrm.php:1814
+#: class-gf-zohocrm.php:1887
+msgid "Could not validate if the contact already exists; the contact has no email."
+msgstr ""
+
+#: class-gf-zohocrm.php:1896
 msgid "Could not validate if the contact already exists; "
 msgstr ""
 
-#: class-gf-zohocrm.php:1819
+#: class-gf-zohocrm.php:1901
 msgid "Contact #%d already exists."
 msgstr ""
 
-#: class-gf-zohocrm.php:1828
+#: class-gf-zohocrm.php:1910
 msgid "Could not %s contact; %s"
 msgstr ""
 
-#: class-gf-zohocrm.php:1879
+#: class-gf-zohocrm.php:1961
 msgid "Could not create lead; Leads module is hidden, please check your Zoho CRM account."
 msgstr ""
 
-#: class-gf-zohocrm.php:1998
+#: class-gf-zohocrm.php:2077
+msgid "Could not validate if the lead already exists; the lead has no email."
+msgstr ""
+
+#: class-gf-zohocrm.php:2086
 msgid "Could not validate if the lead already exists; "
 msgstr ""
 
-#: class-gf-zohocrm.php:2003
+#: class-gf-zohocrm.php:2091
 msgid "Lead #%d already exists."
 msgstr ""
 
-#: class-gf-zohocrm.php:2012
+#: class-gf-zohocrm.php:2100
 msgid "Could not create lead; "
 msgstr ""
 
-#: class-gf-zohocrm.php:2128
+#: class-gf-zohocrm.php:2216
 msgid "Could not create task; "
+msgstr ""
+
+#: class-gf-zohocrm.php:2828
+#: class-gf-zohocrm.php:2833
+msgid "Access denied."
+msgstr ""
+
+#: includes/class-gf-zohocrm-api.php:166
+#: includes/class-gf-zohocrm-api.php:215
+msgid "Refresh token must be provided."
+msgstr ""
+
+#: includes/class-gf-zohocrm-api.php:405
+msgid "The value of %s cannot be sent to Zoho CRM. Reason: The data format is invalid."
 msgstr ""
 
 #: includes/legacy/class-gf-zohocrm.php:236
 msgid "Zoho CRM's v1 API has been deprecated. %sTo use the v2 API, please switch your Zoho CRM Authentication method to OAuth Authentication.%s"
 msgstr ""
 
-#: includes/class-gf-zohocrm-api.php:165
-#: includes/class-gf-zohocrm-api.php:212
-msgid "Refresh token must be provided."
-msgstr ""
-
-#: includes/class-gf-zohocrm-api.php:376
-msgid "The value of %s cannot be sent to Zoho CRM. Reason: The data format is invalid."
+#: includes/legacy/class-gf-zohocrm.php:357
+msgid "Authenticate With"
 msgstr ""

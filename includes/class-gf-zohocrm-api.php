@@ -49,6 +49,7 @@ class GF_ZohoCRM_API {
 				'us' => 'https://www.zohoapis.com/',
 				'eu' => 'https://www.zohoapis.eu/',
 				'in' => 'https://www.zohoapis.in/',
+				'au' => 'https://www.zohoapis.com.au/',
 			);
 
 			$api_domain    = ( ! rgar( $api_domains, $auth_data['location'] ) ) ? $api_domains['us'] : $api_domains[ $auth_data['location'] ];
@@ -169,16 +170,18 @@ class GF_ZohoCRM_API {
 			add_query_arg( array(
 				'refresh_token' => $auth_data['refresh_token'],
 				'location'      => $auth_data['location'],
-			), gf_zohocrm()->get_gravity_api_url( '/auth/zoho-crm/refresh' ) )
+				'state'         => wp_create_nonce( gf_zohocrm()->get_authentication_state_action() ),
+ 			), gf_zohocrm()->get_gravity_api_url( '/auth/zoho-crm/refresh' ) )
 		);
 
 		$response_code = wp_remote_retrieve_response_code( $response );
 		$message       = wp_remote_retrieve_response_message( $response );
 
 		if ( $response_code === 200 ) {
-			$auth_payload = json_decode( wp_remote_retrieve_body( $response ), true );
-			$auth_payload = unserialize( base64_decode( $auth_payload['auth_payload'] ) );
-			if ( isset( $auth_payload['access_token'] ) ) {
+			$auth_response = json_decode( wp_remote_retrieve_body( $response ), true );
+			$auth_payload  = json_decode( $auth_response['auth_payload'], true );
+
+			if ( isset( $auth_payload['access_token'] ) && wp_verify_nonce( $auth_payload['state'], gf_zohocrm()->get_authentication_state_action() ) ) {
 				$auth_data['access_token'] = $auth_payload['access_token'];
 
 				$this->auth_data = $auth_data;
@@ -351,6 +354,25 @@ class GF_ZohoCRM_API {
 			$upsert = '/upsert';
 		}
 
+		/**
+		 * Modify the record arguments before they are sent to Zoho CRM.
+		 *
+		 * @since 1.8.1
+		 *
+		 * @param array  $record  The record argument.
+		 * @param string $module The module.
+		 * @param array  $feed  Feed object.
+		 * @param array  $entry Entry object.
+		 * @param array  $form  Form object.
+		 */
+		$filtered_record = gf_apply_filters( array( 'gform_zohocrm_record', $record['form']['id'] ), $record, $module, $record['feed'], $record['entry'], $record['form'] );
+
+		if ( $filtered_record !== $record ) {
+			gf_zohocrm()->log_debug( __METHOD__ . '(): record sent to Zoho CRM: ' . print_r( $filtered_record, true ) );
+
+			$record = $filtered_record;
+		}
+
 		// unset extra fields.
 		$check_fields = array( 'feed', 'entry', 'form' );
 		foreach ( $check_fields as $field ) {
@@ -372,8 +394,17 @@ class GF_ZohoCRM_API {
 				$code = rgar( $data[0], 'code' );
 				if ( $code === 'INVALID_DATA' ) {
 					$details = rgar( $data[0], 'details' );
+
+					if ( empty( $details['api_name'] ) ) {
+						// Aborting here to prevent an infinite loop that has occurred in a few cases.
+						gf_zohocrm()->log_error( __METHOD__ . '(): ' . print_r( $error_data, true ) );
+
+						return $result;
+					}
+
+					gf_zohocrm()->add_feed_error( sprintf( esc_html__( 'The value of %s cannot be sent to Zoho CRM. Reason: The data format is invalid.', 'gravityformszohocrm' ), rgar( $details, 'api_name', 'api_name missing' ) ), $feed, $entry, $form );
+
 					unset( $record['data'][0][ $details['api_name'] ] );
-					gf_zohocrm()->add_feed_error( sprintf( esc_html__( 'The value of %s cannot be sent to Zoho CRM. Reason: The data format is invalid.', 'gravityformszohocrm' ), $details['api_name'] ), $feed, $entry, $form );
 
 					foreach ( $check_fields as $field ) {
 						$record[ $field ] = ${$field};
@@ -508,9 +539,9 @@ class GF_ZohoCRM_API {
 
 			$json_body  = gf_zohocrm()->maybe_decode_json( $response['body'] );
 			$error_data = array( 'status' => $retrieved_response_code );
-			if ( rgar( $json_body, 'data' ) !== '' ) {
+			if ( rgar( $json_body, 'data' ) ) {
 				$error_data['data'] = $json_body['data'];
-			} elseif ( rgar( $json_body, 'message' ) !== '' ) {
+			} elseif ( rgar( $json_body, 'message' ) ) {
 				$error_data['data'] = $json_body['message'];
 			}
 
@@ -543,6 +574,7 @@ class GF_ZohoCRM_API {
 			'us' => 'https://accounts.zoho.com/',
 			'eu' => 'https://accounts.zoho.eu/',
 			'in' => 'https://accounts.zoho.in/',
+			'au' => 'https://accounts.zoho.com.au/',
 		);
 
 		return ( ! rgar( $servers, $location ) ) ? 'https://accounts.zoho.com/' : $servers[ $location ];
