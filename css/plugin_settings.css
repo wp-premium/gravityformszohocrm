@@ -6,6 +6,7 @@
     width: 0;
 }
 
-#tab_gravityformszohocrm table.gforms_form_settings > tbody > tr:last-child {
+#tab_gravityformszohocrm .gaddon-section:last-of-type .gforms_form_settings:last-of-type > tbody > tr:last-child,
+#tab_gravityformszohocrm .gform-settings-save-container {
     display: none;
 }

@@ -27,21 +27,24 @@ window.GFZohoCRMSettings = null;
                 $button.attr('disabled', 'disabled');
 
                 // De-Authorize.
-                $.ajax({
-                    async: false,
-                    url: ajaxurl,
+                $.ajax( {
+                    async:    false,
+                    url:      ajaxurl,
                     dataType: 'json',
-                    data: {action: 'gfzohocrm_deauthorize'},
-                    success: function (response) {
-                        if (response.success) {
+                    data:     {
+                        action: 'gfzohocrm_deauthorize',
+                        nonce:  gform_zohocrm_pluginsettings_strings.nonce_deauthorize
+                    },
+                    success:  function ( response ) {
+                        if ( response.success ) {
                             window.location.href = self.pageURL;
                         } else {
-                            alert(response.data.message);
+                            alert( response.data.message );
                         }
 
-                        $button.removeAttr('disabled');
+                        $button.removeAttr( 'disabled' );
                     }
-                });
+                } );
 
             });
         }

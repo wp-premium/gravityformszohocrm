@@ -163,6 +163,15 @@ class GFZohoCRM extends GFFeedAddOn {
 	protected $fields_transient_name = 'gform_zohocrm_fields';
 
 	/**
+	 * Whether Add-on framework has settings renderer support or not, settings renderer was introduced in Gravity Forms 2.5
+	 *
+	 * @since 1.11.2
+	 *
+	 * @var bool
+	 */
+	protected $_has_settings_renderer;
+
+	/**
 	 * Get instance of this class.
 	 *
 	 * @since  1.0
@@ -187,6 +196,8 @@ class GFZohoCRM extends GFFeedAddOn {
 	 * @access public
 	 */
 	public function init() {
+
+		$this->_has_settings_renderer  = $this->is_gravityforms_supported( '2.5-beta' );
 
 		parent::init();
 
@@ -234,8 +245,9 @@ class GFZohoCRM extends GFFeedAddOn {
 					),
 				),
 				'strings' => array(
-					'disconnect'   => wp_strip_all_tags( __( 'Are you sure you want to disconnect from Zoho CRM?', 'gravityformszohocrm' ) ),
-					'settings_url' => admin_url( 'admin.php?page=gf_settings&subview=' . $this->get_slug() ),
+					'disconnect'        => wp_strip_all_tags( __( 'Are you sure you want to disconnect from Zoho CRM?', 'gravityformszohocrm' ) ),
+					'settings_url'      => admin_url( 'admin.php?page=gf_settings&subview=' . $this->get_slug() ),
+					'nonce_deauthorize' => wp_create_nonce( 'gfzohocrm_deauthorize' ),
 				),
 			),
 		);
@@ -288,22 +300,37 @@ class GFZohoCRM extends GFFeedAddOn {
 	// # PLUGIN SETTINGS -----------------------------------------------------------------------------------------------
 
 	/**
-	 * Add clear custom fields cache button.
+	 * Return the plugin's icon for the plugin/form settings menu.
 	 *
-	 * @since  1.1
-	 * @access public
+	 * @since 1.11.2
+	 *
+	 * @return string
 	 */
-	public function render_uninstall() {
+	public function get_menu_icon() {
 
-		$html  = '<div class="hr-divider"></div>';
-		$html .= '<h3><span><i class="fa fa-list"></i> ' . esc_html__( 'Clear Custom Fields Cache', 'gravityformszohocrm' ) . '</span></h3>';
-		$html .= '<p>' . esc_html__( 'Due to Zoho CRM\'s daily API usage limits, Gravity Forms stores Zoho CRM custom fields data for twelve hours. If you make a change to your custom fields, you might not see it reflected immediately due to this data caching. To manually clear the custom fields cache, click the button below.', 'gravityformszohocrm' ) . '</p>';
-		$html .= '<p><a href="' . add_query_arg( 'clear_field_cache', 'true' ) . '" class="button button-primary">' . esc_html__( 'Clear Custom Fields Cache', 'gravityformszohocrm' ) . '</a></p>';
+		return file_get_contents( $this->get_base_path() . '/images/menu-icon.svg' );
 
-		echo $html;
+	}
 
-		echo parent::render_uninstall();
+	/**
+	 * Generates clear custom fields cache button field markup.
+	 *
+	 * @param  array $field Field properties.
+	 * @param  bool  $echo  Display field contents. Defaults to true.
+	 *
+	 * @since  1.11.2
+	 *
+	 * @return string
+	 */
+	public function settings_clear_cache( $field, $echo = true ) {
+		$html = '<p>' . esc_html__( 'Due to Zoho CRM\'s daily API usage limits, Gravity Forms stores Zoho CRM custom fields data for twelve hours. If you make a change to your custom fields, you might not see it reflected immediately due to this data caching. To manually clear the custom fields cache, click the button below.', 'gravityformszohocrm' ) . '</p>';
+		$html .= '<p><a href="' . add_query_arg( 'clear_field_cache', 'true' ) . '" class="primary button large">' . esc_html__( 'Clear Custom Fields Cache', 'gravityformszohocrm' ) . '</a></p>';
 
+		if ( $echo ) {
+			echo html_entity_decode( $html );
+		}
+
+		return $html;
 	}
 
 	/**
@@ -354,11 +381,18 @@ class GFZohoCRM extends GFFeedAddOn {
 	 */
 	public function maybe_update_auth_tokens() {
 		// If access token is provided, save it.
-		if ( rgget( 'auth_payload' ) && ! $this->is_save_postback() ) {
+		if ( rgpost( 'auth_payload' ) && ! $this->is_save_postback() ) {
+
+			// Verify state.
+			if ( ! wp_verify_nonce( rgpost( 'state' ), $this->get_authentication_state_action() ) ) {
+				GFCommon::add_error_message( esc_html__( 'Unable to connect to Zoho CRM due to mismatched state.', 'gravityformszohocrm' ) );
+				return;
+			}
+
 			$old_authMode = $this->get_setting( 'authMode' );
 
 			$settings     = array();
-			$auth_payload = unserialize( base64_decode( rgget( 'auth_payload' ) ) );
+			$auth_payload = json_decode( base64_decode( rgpost( 'auth_payload' ) ), true );
 
 			// Add API info to plugin settings.
 			$settings['authMode']   = 'oauth';
@@ -383,9 +417,9 @@ class GFZohoCRM extends GFFeedAddOn {
 		}
 
 		// If error is provided, display message.
-		if ( rgget( 'auth_error' ) ) {
+		if ( rgpost( 'auth_error' ) ) {
 			// Add error message.
-			GFCommon::add_error_message( esc_html__( 'Unable to authenticate with Zoho CRM.', 'gravityformszohocrm' ) );
+			GFCommon::add_error_message( esc_html__( 'Unable to connect to Zoho CRM.', 'gravityformszohocrm' ) );
 		}
 	}
 
@@ -422,7 +456,7 @@ class GFZohoCRM extends GFFeedAddOn {
 			$fields = array(
 				array(
 					'name'          => 'authMode',
-					'label'         => esc_html__( 'Authenticate With', 'gravityformszohocrm' ),
+					'label'         => esc_html__( 'Connect With', 'gravityformszohocrm' ),
 					'type'          => 'radio',
 					'default_value' => is_ssl() ? 'oauth' : 'email',
 					'onclick'       => "jQuery(this).not(':disabled').parents('form').submit();if(jQuery(this).is(':disabled')){return false;}",
@@ -504,6 +538,16 @@ class GFZohoCRM extends GFFeedAddOn {
 				'description' => $description,
 				'fields'      => $fields,
 			),
+			array(
+				'title'  => esc_html__( 'Clear Custom Fields Cache', 'gravityformszohocrm' ),
+				'fields' => array(
+					array(
+						'name'  => 'clear_cache',
+						'label' => '',
+						'type'  => 'clear_cache',
+					),
+				),
+			),
 		);
 
 	}
@@ -525,25 +569,33 @@ class GFZohoCRM extends GFFeedAddOn {
 
 		if ( $this->get_setting( 'authMode', 'oauth' ) === 'oauth' ) {
 			if ( $this->initialize_api() ) {
-				$html = '<p>' . esc_html__( 'Signed into Zoho CRM.', 'gravityformszohocrm' );
+				$html = '<p>' . esc_html__( 'Connected to Zoho CRM.', 'gravityformszohocrm' );
 				$html .= '</p>';
 				$html .= sprintf(
 					' <a href="#" class="button" id="gform_zohocrm_deauth_button">%1$s</a>',
-					esc_html__( 'De-Authorize Zoho CRM', 'gravityformszohocrm' )
+					esc_html__( 'Disconnect from Zoho CRM', 'gravityformszohocrm' )
 				);
 			} else {
 				// If SSL is available, display custom app settings.
 				if ( is_ssl() ) {
+					$license_key  = GFCommon::get_key();
 					$settings_url = urlencode( admin_url( 'admin.php?page=gf_settings&subview=' . $this->_slug ) );
-					$auth_url     = add_query_arg( array( 'redirect_to' => $settings_url ), $this->get_gravity_api_url( '/auth/zoho-crm' ) );
+					$auth_url     = add_query_arg(
+						array(
+							'redirect_to' => $settings_url,
+							'license'     => $license_key,
+							'state'       => wp_create_nonce( $this->get_authentication_state_action() ),
+						),
+						$this->get_gravity_api_url( '/auth/zoho-crm' )
+					);
 
 					$html = sprintf(
-						'<a href="%2$s" class="button" id="gform_zohocrm_auth_button">%s</a>',
-						esc_html__( 'Click here to authenticate with Zoho CRM', 'gravityformszohocrm' ),
+						'<a href="%2$s" class="primary button large" id="gform_zohocrm_auth_button">%s</a>',
+						esc_html__( 'Click here to connect to Zoho CRM', 'gravityformszohocrm' ),
 						$auth_url
 					);
 				} else {
-					$html = '<div class="alert_red" style="padding:20px; padding-top:5px;">';
+					$html = $this->_has_settings_renderer ? '<div class="alert gforms_note_error">' : '<div class="alert_red" style="padding:20px; padding-top:5px;">';
 					$html .= '<h4>' . esc_html__( 'SSL Certificate Required', 'gravityformszohocrm' ) . '</h4>';
 					$html .= sprintf( esc_html__( 'Make sure you have an SSL certificate installed and enabled, then %1$sclick here to continue%2$s.', 'gravityformszohocrm' ), '<a href="' . admin_url( 'admin.php?page=gf_settings&subview=gravityformszohocrm', 'https' ) . '">', '</a>' );
 					$html .= '</div>';
@@ -554,7 +606,7 @@ class GFZohoCRM extends GFFeedAddOn {
 			$accounts_api_url = $this->get_accounts_api_url();
 
 			$html = sprintf(
-				'<a href="%1$s" class="button" onclick="%2$s">%3$s</a>',
+				'<a href="%1$s" class="primary button large" onclick="%2$s">%3$s</a>',
 				"{$accounts_api_url}/apiauthtoken/create?SCOPE=ZohoCRM/crmapi",
 				"window.open( '" . $accounts_api_url . "/apiauthtoken/create?SCOPE=ZohoCRM/crmapi', '_blank', 'toolbar=no,scrollbars=yes,resizable=yes,width=590,height=700' );return false;",
 				esc_html__( 'Click here to generate an authentication token.', 'gravityformszohocrm' )
@@ -778,6 +830,7 @@ class GFZohoCRM extends GFFeedAddOn {
 					'type'          => 'text',
 					'required'      => true,
 					'default_value' => $this->get_default_feed_name(),
+					'class'         => 'medium',
 					'tooltip'       => '<h6>' . esc_html__( 'Name', 'gravityformszohocrm' ) . '</h6>' . esc_html__( 'Enter a feed name to uniquely identify this setup.', 'gravityformszohocrm' ),
 				),
 				array(
@@ -1126,7 +1179,7 @@ class GFZohoCRM extends GFFeedAddOn {
 					'name'    => 'createTask',
 					'label'   => esc_html__( 'Create Task', 'gravityformszohocrm' ),
 					'type'    => 'checkbox',
-					'onclick' => "jQuery(this).parents('form').submit();",
+					'onclick' => $this->_has_settings_renderer ? '' : "jQuery(this).parents('form').submit();",
 					'choices' => array(
 						array(
 							'name'  => 'createTask',
@@ -1143,14 +1196,14 @@ class GFZohoCRM extends GFFeedAddOn {
 					'class'      => 'medium merge-tag-support mt-position-right mt-hide_all_fields',
 					'label'      => esc_html__( 'Task Subject', 'gravityformszohocrm' ),
 					'required'   => true,
-					'dependency' => array( 'field' => 'createTask', 'values' => array( '1' ) ),
+					'dependency' => $this->get_task_details_dependency(),
 				),
 				array(
 					'name'                => 'taskDueDate',
 					'type'                => 'text',
 					'class'               => 'medium merge-tag-support mt-position-right mt-hide_all_fields',
 					'label'               => esc_html__( 'Days Until Due', 'gravityformszohocrm' ),
-					'dependency'          => array( 'field' => 'createTask', 'values' => array( '1' ) ),
+					'dependency' => $this->get_task_details_dependency(),
 					'validation_callback' => array( $this, 'validate_task_due_date' ),
 				),
 				array(
@@ -1158,14 +1211,14 @@ class GFZohoCRM extends GFFeedAddOn {
 					'label'      => esc_html__( 'Task Owner', 'gravityformszohocrm' ),
 					'type'       => 'select',
 					'choices'    => $this->get_users_for_feed_setting(),
-					'dependency' => array( 'field' => 'createTask', 'values' => array( '1' ) ),
+					'dependency' => $this->get_task_details_dependency(),
 				),
 				array(
 					'name'       => 'taskDescription',
 					'type'       => 'textarea',
 					'class'      => 'medium merge-tag-support mt-position-right mt-hide_all_fields',
 					'label'      => esc_html__( 'Task Description', 'gravityformszohocrm' ),
-					'dependency' => array( 'field' => 'createTask', 'values' => array( '1' ) ),
+					'dependency' => $this->get_task_details_dependency(),
 				),
 			),
 		);
@@ -1182,7 +1235,7 @@ class GFZohoCRM extends GFFeedAddOn {
 				'label'      => esc_html__( 'Task Status', 'gravityformszohocrm' ),
 				'type'       => 'select',
 				'choices'    => $status_choices,
-				'dependency' => array( 'field' => 'createTask', 'values' => array( '1' ) )
+				'dependency' => $this->get_task_details_dependency(),
 			);
 
 			// Add settings field.
@@ -1192,6 +1245,29 @@ class GFZohoCRM extends GFFeedAddOn {
 
 		return $fields;
 
+	}
+
+	/**
+	 * Generates task details fields dependency array.
+	 *
+	 * @since 1.11.2
+	 *
+	 * @return array
+	 */
+	private function get_task_details_dependency() {
+		if ( ! $this->_has_settings_renderer ) {
+			return array( 'field' => 'createTask', 'values' => array( '1' ) );
+		}
+
+		return array(
+			'live'   => true,
+			'fields' => array(
+				array(
+					'field'  => 'createTask',
+					'values' => array( '1' ),
+				),
+			),
+		);
 	}
 
 	/**
@@ -1805,7 +1881,13 @@ class GFZohoCRM extends GFFeedAddOn {
 			if ( $contact['options']['duplicateCheck'] === 2 ) {
 				$contact_record = $this->api->insert_record( 'Contacts', $contact_data, true );
 			} else {
-				$contacts = $this->api->search_record( 'Contacts', array( 'email' => urlencode( $contact_data['data'][0]['Email'] ), 'approved' => 'both' ) );
+				if ( isset( $contact_data['data'][0]['Email'] ) ) {
+					$contacts = $this->api->search_record( 'Contacts', array( 'email' => urlencode( $contact_data['data'][0]['Email'] ), 'approved' => 'both' ) );
+				} else {
+					$this->add_feed_error( esc_html__( 'Could not validate if the contact already exists; the contact has no email.', 'gravityformszohocrm' ), $feed, $entry, $form );
+					$contacts = array();
+				}
+
 				if ( empty( $contacts ) ) {
 					$contact_record = $this->api->insert_record( 'Contacts', $contact_data, true );
 				} else {
@@ -1989,7 +2071,13 @@ class GFZohoCRM extends GFFeedAddOn {
 			if ( $lead['options']['duplicateCheck'] === 2 ) {
 				$lead_record = $this->api->insert_record( 'Leads', $lead_data, true );
 			} else {
-				$leads = $this->api->search_record( 'Leads', array( 'email' => urlencode( $lead_data['data'][0]['Email'] ), 'approved' => 'both' ) );
+				if ( isset( $lead_data['data'][0]['Email'] ) ) {
+					$leads = $this->api->search_record( 'Leads', array( 'email' => urlencode( $lead_data['data'][0]['Email'] ), 'approved' => 'both' ) );
+				} else {
+					$this->add_feed_error( esc_html__( 'Could not validate if the lead already exists; the lead has no email.', 'gravityformszohocrm' ), $feed, $entry, $form );
+					$leads = array();
+				}
+
 				if ( empty( $leads ) ) {
 					$lead_record = $this->api->insert_record( 'Leads', $lead_data, true );
 				} else {
@@ -2111,7 +2199,7 @@ class GFZohoCRM extends GFFeedAddOn {
 		 */
 		$task = gf_apply_filters( 'gform_zohocrm_task', $form['id'], $task, $feed, $entry, $form );
 
-		$task_data = array( 'data' => array() );
+		$task_data = array( 'data' => array(), 'feed' => $feed, 'entry' => $entry, 'form' => $form );
 		foreach ( $task as $field_key => $field_value ) {
 			$task_data['data'][0][ $field_key ] = $field_value;
 		}
@@ -2366,6 +2454,19 @@ class GFZohoCRM extends GFFeedAddOn {
 	}
 
 	/**
+	 * Get action name for authentication state.
+	 *
+	 * @since 1.11
+	 *
+	 * @return string
+	 */
+	public function get_authentication_state_action() {
+
+		return 'gform_zohocrm_authentication_state';
+
+	}
+
+	/**
 	 * Update the cached fields for all the needed modules.
 	 *
 	 * @since  1.6 Updated per v2 API changes.
@@ -2405,6 +2506,12 @@ class GFZohoCRM extends GFFeedAddOn {
 
 			// Loop through layouts.
 			foreach ( $layouts as $layout ) {
+
+				// If layout is deactivated in Zoho, skip layout.
+				if ( $layout['status'] === -1 ) {
+					continue;
+				}
+
 				// Loop through the module's sections.
 				foreach ( $layout['sections'] as $section ) {
 
@@ -2620,7 +2727,7 @@ class GFZohoCRM extends GFFeedAddOn {
 	 * @return string
 	 */
 	public function get_gravity_api_url( $path = '' ) {
-		return ( defined( 'GRAVITY_API_URL' ) ? GRAVITY_API_URL : 'https://www.gravityhelp.com/wp-json/gravityapi/v1' ) . $path;
+		return ( defined( 'GRAVITY_API_URL' ) ? GRAVITY_API_URL : 'https://gravityapi.com/wp-json/gravityapi/v1' ) . $path;
 	}
 
 
@@ -2715,6 +2822,18 @@ class GFZohoCRM extends GFFeedAddOn {
 	 * @since  1.6
 	 */
 	public function ajax_deauthorize() {
+
+		// Verify nonce.
+		if ( wp_verify_nonce( rgget( 'nonce' ), 'gfzohocrm_deauthorize' ) === false ) {
+			wp_send_json_error( array( 'message' => esc_html__( 'Access denied.', 'gravityformszohocrm' ) ) );
+		}
+
+		// If user is not authorized, exit.
+		if ( ! GFCommon::current_user_can_any( $this->_capabilities_settings_page ) ) {
+			wp_send_json_error( array( 'message' => esc_html__( 'Access denied.', 'gravityformszohocrm' ) ) );
+		}
+
+
 		// If API instance is not initialized, return choices.
 		if ( ! $this->initialize_api() ) {
 			$this->log_error( __METHOD__ . '(): Unable to get users because API is not initialized.' );
